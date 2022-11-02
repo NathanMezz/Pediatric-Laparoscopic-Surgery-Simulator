@@ -1,0 +1,4 @@
+Required Python Libraries:
+
+cv2
+- In Anaconda Powershell, install using "pip install opencv-python"

@@ -33,6 +33,14 @@ class GUI(object):
 
 def main():
 
+    def evaluate_state():
+        if GUI.image_state == 1:
+            ret, frame = GUI.cap.read()
+            cv2.putText(frame, "Test", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.imshow(GUI.windowName, frame)
+        else:
+            cv2.imshow(GUI.windowName, GUI.black_image)
+
     def mouse_event(event, x, y, flags, param):
         # TODO: Check what coordinates button click occurs, change image here instead of in loop (Get rid of image_state var)
         # TODO: If selecting a game, make a call to a method for that game, the while loop for the camera feed can go there
@@ -55,25 +63,16 @@ def main():
 
     cv2.setMouseCallback("Test Window", mouse_event)
 
+
+    #TODO: While running call methods to evaluate state, get newest video frame, etc.
     while True:
-        ret, frame = GUI.cap.read()
-
-        # Placing text on each image
-        cv2.putText(frame, "Test", (25, 35), GUI.font, 1, (0, 0, 255), 2)
-        cv2.putText(GUI.black_image, "Test 2", (25, 35), GUI.font, 1, (0, 0, 255), 2)
-
-        # Change window image based on GUI image state
-        if GUI.image_state == 0:
-            cv2.imshow(GUI.windowName, frame)
-        elif GUI.image_state == 1:
-            cv2.imshow(GUI.windowName, GUI.black_image)
+        evaluate_state()
 
         key = cv2.waitKey(1)
         if key == ord("q"):
             break
 
     GUI.cap.release()
-    # TODO: Add a quit button and have program execute the destroy
     cv2.destroyAllWindows
 
 if __name__ == '__main__':

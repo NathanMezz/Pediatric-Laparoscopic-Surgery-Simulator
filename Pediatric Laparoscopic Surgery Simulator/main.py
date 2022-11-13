@@ -19,11 +19,18 @@ class GUI(object):
 
         self.cap = cv2.VideoCapture(cameraID)  # Camera ID can be 0, 1, etc.
 
+        # Setting video capture size to be 1920x1080
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+
+        # Setting FPS to 60, may need to lower this for the augmented reality
+        self.cap.set(cv2.CAP_PROP_FPS, 60)
+
         ret, frame = self.cap.read()
         self.displayHeight, self.displayWidth, other = frame.shape
 
-        # basic background TODO: Convert this into main menu image
-        self.black_image = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
+        # Main menu image
+        self.main_menu = np.zeros([1080, 1920, 3], np.uint8)
         self.font = font
         self.windowName = windowName
 
@@ -31,19 +38,20 @@ class GUI(object):
 
 
 
+
 def main():
 
     def evaluate_state():
         if GUI.image_state == 1:
+            # Get latest video frame
             ret, frame = GUI.cap.read()
             cv2.putText(frame, "Test", (25, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, frame)
         else:
-            cv2.imshow(GUI.windowName, GUI.black_image)
+            cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (225, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.imshow(GUI.windowName, GUI.main_menu)
 
     def mouse_event(event, x, y, flags, param):
-        # TODO: Check what coordinates button click occurs, change image here instead of in loop (Get rid of image_state var)
-        # TODO: If selecting a game, make a call to a method for that game, the while loop for the camera feed can go there
         if event == cv2.EVENT_LBUTTONDOWN:
             # Sectioning window into 4 corners
             # Top left click

@@ -48,12 +48,18 @@ def main():
             cv2.putText(frame, "Test", (25, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, frame)
         else:
-            cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (225, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (800, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.main_menu, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, GUI.main_menu)
+
+    def quit_program():
+        GUI.cap.release()
+        cv2.destroyAllWindows
 
     def mouse_event(event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
             # Sectioning window into 4 corners
+            # TODO: Section state changes based on current GUI state
             # Top left click
             if y < GUI.displayHeight/2 and x < GUI.displayWidth/2:
                 print("Top left")
@@ -65,6 +71,7 @@ def main():
             # Bottom left click
             elif y > GUI.displayHeight/2 and x < GUI.displayWidth/2:
                 print("Bottom left")
+                GUI.image_state = -1
             # Bottom right click
             elif y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
                 print("Bottom right")
@@ -77,11 +84,12 @@ def main():
         evaluate_state()
 
         key = cv2.waitKey(1)
-        if key == ord("q"):
+        if key == ord("q") or GUI.image_state == -1:    # state -1 will tell program to quit
+            quit_program()
             break
 
-    GUI.cap.release()
-    cv2.destroyAllWindows
+
+
 
 if __name__ == '__main__':
     cameraID = 0 # Set Camera ID to change camera input (0, 1, etc.)

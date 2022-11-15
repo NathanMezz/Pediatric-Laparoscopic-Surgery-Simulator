@@ -20,8 +20,8 @@ class GUI(object):
         self.cap = cv2.VideoCapture(cameraID)  # Camera ID can be 0, 1, etc.
 
         # Setting video capture size to be 1920x1080
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
         # Setting FPS to 60, may need to lower this for the augmented reality
         self.cap.set(cv2.CAP_PROP_FPS, 60)
@@ -30,7 +30,7 @@ class GUI(object):
         self.displayHeight, self.displayWidth, other = frame.shape
 
         # Main menu image
-        self.main_menu = np.zeros([1080, 1920, 3], np.uint8)
+        self.main_menu = np.zeros([720, 1280, 3], np.uint8)
         self.font = font
         self.windowName = windowName
 

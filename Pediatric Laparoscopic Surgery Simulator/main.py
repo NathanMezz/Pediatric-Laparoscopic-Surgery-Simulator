@@ -6,7 +6,7 @@ Run this file to run the project
 
 Author: Nathan Mezzomo
 Date Created: November 2, 2022
-Last Edited: November 2, 2022
+Last Edited: November 17, 2022
 '''
 
 import cv2
@@ -19,11 +19,18 @@ class GUI(object):
 
         self.cap = cv2.VideoCapture(cameraID)  # Camera ID can be 0, 1, etc.
 
+        # Setting video capture size to be 1280x720p
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
+        # Setting FPS to 60, may need to lower this for the augmented reality
+        self.cap.set(cv2.CAP_PROP_FPS, 60)
+
         ret, frame = self.cap.read()
         self.displayHeight, self.displayWidth, other = frame.shape
 
-        # basic background TODO: Convert this into main menu image
-        self.black_image = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
+        # Main menu image
+        self.main_menu = np.zeros([720, 1280, 3], np.uint8)
         self.font = font
         self.windowName = windowName
 
@@ -31,49 +38,86 @@ class GUI(object):
 
 
 
-def main():
 
+def main():
+    '''
+    Image states:
+    1 = Ring Task
+    2 = Suturing Task
+    3 = Analysis ? (Maybe split into a couple)
+    -1 = quit
+    0 = main menu
+    '''
+
+    # TODO: If this gets bulky, should generalize text locations to simplify future modifications
     def evaluate_state():
         if GUI.image_state == 1:
+            # TODO: Try to add tool tip tracking for the AR
+            # TODO: Implement the existing AR for this game that doesn't require sensor input
+            # Get latest video frame
             ret, frame = GUI.cap.read()
-            cv2.putText(frame, "Test", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, frame)
-        else:
-            cv2.imshow(GUI.windowName, GUI.black_image)
+        elif GUI.image_state == 2:
+            ret, frame = GUI.cap.read()
+            cv2.putText(frame, "Suturing Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.imshow(GUI.windowName, frame)
+        elif GUI.image_state == 0:
+            cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (320, 360), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.main_menu, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.main_menu, "Suturing Task", (1025, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.main_menu, "Quit", (25, 685), GUI.font, 1, (0, 0, 255), 2)
+            cv2.imshow(GUI.windowName, GUI.main_menu)
+
+    def quit_program():
+        GUI.cap.release()
+        cv2.destroyAllWindows
 
     def mouse_event(event, x, y, flags, param):
-        # TODO: Check what coordinates button click occurs, change image here instead of in loop (Get rid of image_state var)
-        # TODO: If selecting a game, make a call to a method for that game, the while loop for the camera feed can go there
         if event == cv2.EVENT_LBUTTONDOWN:
-            # Sectioning window into 4 corners
-            # Top left click
-            if y < GUI.displayHeight/2 and x < GUI.displayWidth/2:
-                print("Top left")
-                GUI.image_state = 1
-            # Top right click
-            elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
-                print("Top right")
-                GUI.image_state = 0
-            # Bottom left click
-            elif y > GUI.displayHeight/2 and x < GUI.displayWidth/2:
-                print("Bottom left")
-            # Bottom right click
-            elif y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
-                print("Bottom right")
+            # Section state changes based on current GUI state
+            # Main menu options
+            if GUI.image_state == 0:
+                # Sectioning window into 4 corners
+                # Top left click
+                if y < GUI.displayHeight/2 and x < GUI.displayWidth/2:
+                    print("Top left")
+                    GUI.image_state = 1     # Ring Task
+                # Top right click
+                elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
+                    print("Top right")
+                    GUI.image_state = 2     # Suturing Task
+                # Bottom left click
+                elif y > GUI.displayHeight/2 and x < GUI.displayWidth/2:
+                    print("Bottom left")
+                    GUI.image_state = -1    # Quit
+                # Bottom right click
+                elif y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
+                    print("Bottom right")   # TODO: Tutorial Videos?
+            # Ring Task options
+            elif GUI.image_state == 1:
+                if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:
+                    GUI.image_state = 0  # Back to main menu
+            # Suturing Task options
+            elif GUI.image_state == 2:
+                if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:
+                    GUI.image_state = 0  # Back to main menu
+
 
     cv2.setMouseCallback("Test Window", mouse_event)
 
 
-    #TODO: While running call methods to evaluate state, get newest video frame, etc.
+    # While running, make required calls to evaluate the current program state
     while True:
         evaluate_state()
 
+        # Can press "q" key anytime to quit, no matter GUI state
         key = cv2.waitKey(1)
-        if key == ord("q"):
+        if key == ord("q") or GUI.image_state == -1:    # state -1 will tell program to quit
+            quit_program()
             break
-
-    GUI.cap.release()
-    cv2.destroyAllWindows
 
 if __name__ == '__main__':
     cameraID = 0 # Set Camera ID to change camera input (0, 1, etc.)
@@ -85,7 +129,3 @@ if __name__ == '__main__':
 
     # Call to execute main method
     main()
-
-
-
-

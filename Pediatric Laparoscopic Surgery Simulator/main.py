@@ -19,7 +19,7 @@ class GUI(object):
 
         self.cap = cv2.VideoCapture(cameraID)  # Camera ID can be 0, 1, etc.
 
-        # Setting video capture size to be 1920x1080
+        # Setting video capture size to be 1280x720p
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
@@ -40,16 +40,31 @@ class GUI(object):
 
 
 def main():
-
+    '''
+    Image states:
+    1 = Ring Task
+    2 = Suturing Task
+    3 = Analysis ? (Maybe split into a couple)
+    -1 = quit
+    0 = main menu
+    '''
     def evaluate_state():
         if GUI.image_state == 1:
             # Get latest video frame
             ret, frame = GUI.cap.read()
-            cv2.putText(frame, "Test", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, frame)
-        else:
-            cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (800, 35), GUI.font, 1, (0, 0, 255), 2)
+        elif GUI.image_state == 2:
+            ret, frame = GUI.cap.read()
+            cv2.putText(frame, "Suturing Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.imshow(GUI.windowName, frame)
+        elif GUI.image_state == 0:
+            cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (320, 360), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.main_menu, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.main_menu, "Suturing Task", (1025, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.main_menu, "Quit", (25, 685), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, GUI.main_menu)
 
     def quit_program():
@@ -60,21 +75,33 @@ def main():
         if event == cv2.EVENT_LBUTTONDOWN:
             # Sectioning window into 4 corners
             # TODO: Section state changes based on current GUI state
-            # Top left click
-            if y < GUI.displayHeight/2 and x < GUI.displayWidth/2:
-                print("Top left")
-                GUI.image_state = 1
-            # Top right click
-            elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
-                print("Top right")
-                GUI.image_state = 0
-            # Bottom left click
-            elif y > GUI.displayHeight/2 and x < GUI.displayWidth/2:
-                print("Bottom left")
-                GUI.image_state = -1
-            # Bottom right click
-            elif y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
-                print("Bottom right")
+            # Main menu options
+            if GUI.image_state == 0:
+                # Top left click
+                if y < GUI.displayHeight/2 and x < GUI.displayWidth/2:
+                    print("Top left")
+                    GUI.image_state = 1     # Ring Task
+                # Top right click
+                elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
+                    print("Top right")
+                    GUI.image_state = 2     # Suturing Task
+                # Bottom left click
+                elif y > GUI.displayHeight/2 and x < GUI.displayWidth/2:
+                    print("Bottom left")
+                    GUI.image_state = -1    # Quit
+                # Bottom right click
+                elif y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
+                    print("Bottom right")   # TODO: Tutorial Videos?
+            # Ring Task options
+            elif GUI.image_state == 1:
+                if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:
+                    GUI.image_state = 0  # Back to main menu
+            # Suturing Task options
+            elif GUI.image_state == 2:
+                if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:
+                    GUI.image_state = 0  # Back to main menu
+
+
 
     cv2.setMouseCallback("Test Window", mouse_event)
 

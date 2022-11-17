@@ -6,7 +6,7 @@ Run this file to run the project
 
 Author: Nathan Mezzomo
 Date Created: November 2, 2022
-Last Edited: November 2, 2022
+Last Edited: November 17, 2022
 '''
 
 import cv2
@@ -48,8 +48,12 @@ def main():
     -1 = quit
     0 = main menu
     '''
+
+    # TODO: If this gets bulky, should generalize text locations to simplify future modifications
     def evaluate_state():
         if GUI.image_state == 1:
+            # TODO: Try to add tool tip tracking for the AR
+            # TODO: Implement the existing AR for this game that doesn't require sensor input
             # Get latest video frame
             ret, frame = GUI.cap.read()
             cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
@@ -73,10 +77,10 @@ def main():
 
     def mouse_event(event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
-            # Sectioning window into 4 corners
-            # TODO: Section state changes based on current GUI state
+            # Section state changes based on current GUI state
             # Main menu options
             if GUI.image_state == 0:
+                # Sectioning window into 4 corners
                 # Top left click
                 if y < GUI.displayHeight/2 and x < GUI.displayWidth/2:
                     print("Top left")
@@ -102,21 +106,18 @@ def main():
                     GUI.image_state = 0  # Back to main menu
 
 
-
     cv2.setMouseCallback("Test Window", mouse_event)
 
 
-    #TODO: While running call methods to evaluate state, get newest video frame, etc.
+    # While running, make required calls to evaluate the current program state
     while True:
         evaluate_state()
 
+        # Can press "q" key anytime to quit, no matter GUI state
         key = cv2.waitKey(1)
         if key == ord("q") or GUI.image_state == -1:    # state -1 will tell program to quit
             quit_program()
             break
-
-
-
 
 if __name__ == '__main__':
     cameraID = 0 # Set Camera ID to change camera input (0, 1, etc.)
@@ -128,7 +129,3 @@ if __name__ == '__main__':
 
     # Call to execute main method
     main()
-
-
-
-

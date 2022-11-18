@@ -18,6 +18,7 @@ class GUI(object):
         self.image_state = 0
 
         self.cap = cv2.VideoCapture(cameraID)  # Camera ID can be 0, 1, etc.
+        self.object_detector = cv2.createBackgroundSubtractorMOG2()
 
         # Setting video capture size to be 1280x720p
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
@@ -58,7 +59,18 @@ def main():
             ret, frame = GUI.cap.read()
             cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
-            cv2.imshow(GUI.windowName, frame)
+
+            # Object detection
+            BLUE_MIN = np.array([110, 100, 100],np.uint8)
+            BLUE_MAX = np.array([130, 255, 255],np.uint8)
+
+            hsv_img = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+
+            frame_threshed = cv2.inRange(frame, BLUE_MIN, BLUE_MAX)
+
+            cv2.imshow(GUI.windowName, frame_threshed)
+            cv2.imshow("FRAME", frame)
+
         elif GUI.image_state == 2:
             ret, frame = GUI.cap.read()
             cv2.putText(frame, "Suturing Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)

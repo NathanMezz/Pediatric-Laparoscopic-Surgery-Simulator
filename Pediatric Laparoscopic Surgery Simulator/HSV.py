@@ -84,6 +84,25 @@ while True:
     cv2.imshow('My Object', myObjectSmall)
     cv2.moveWindow('My Object', int(width / 2), int(height))
     myMaskSmall = cv2.resize(myMask, (int(width / 2), int(height / 2)))
+
+    coord = cv2.findNonZero(myMask)
+    contours, _ = cv2.findContours(myMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+  #  max_contour = contours[0]
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+
+        '''   if cv2.contourArea(cnt) > cv2.contourArea(max_contour):
+            max_contour = cnt
+
+        cnt = max_contour
+        approx = cv2.approxPolyDP(cnt, 0.01*cv2.arcLength(cnt, True), True)
+        x,y,w,h=cv2.boundingRect(approx)
+        cv2.rectangle(frame, (x,y), (x+w, y+h), (0, 255, 0), 4)'''
+
+        if area > 100:
+            cv2.drawContours(frame, [cnt], -1, (0, 255, 0), 2)
+
     cv2.imshow('My Mask', myMaskSmall)
     cv2.moveWindow('My Mask', 0, height)
     cv2.imshow('my WEBcam', frame)

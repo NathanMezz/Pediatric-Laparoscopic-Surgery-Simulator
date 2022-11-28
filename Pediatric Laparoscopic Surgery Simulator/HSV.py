@@ -49,7 +49,7 @@ def onTrack6(val):
 
 width = 640
 height = 360
-cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+cam = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 cam.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cam.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 cam.set(cv2.CAP_PROP_FPS, 30)
@@ -94,7 +94,7 @@ while True:
     for cnt in contours:
         area = cv2.contourArea(cnt)
 
-        if area > 200:
+        if area > 50:
             M = cv2.moments(cnt)
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])

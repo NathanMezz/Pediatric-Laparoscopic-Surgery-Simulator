@@ -35,6 +35,10 @@ class GUI(object):
         self.font = font
         self.windowName = windowName
 
+        frame_width = int(self.cap.get(3))
+        frame_height = int(self.cap.get(4))
+        self.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 60, (frame_width, frame_height))
+
         cv2.namedWindow(self.windowName)
 
 
@@ -59,17 +63,13 @@ def main():
             ret, frame = GUI.cap.read()
             cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
+            # TODO: implement the object detection
 
-            # Object detection
-            BLUE_MIN = np.array([110, 100, 100],np.uint8)
-            BLUE_MAX = np.array([130, 255, 255],np.uint8)
 
-            hsv_img = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
-            frame_threshed = cv2.inRange(frame, BLUE_MIN, BLUE_MAX)
 
-            cv2.imshow(GUI.windowName, frame_threshed)
-            cv2.imshow("FRAME", frame)
+            GUI.out.write(frame)
+            cv2.imshow(GUI.windowName, frame)
 
         elif GUI.image_state == 2:
             ret, frame = GUI.cap.read()

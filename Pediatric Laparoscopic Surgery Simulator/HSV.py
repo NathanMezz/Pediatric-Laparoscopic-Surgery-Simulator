@@ -87,7 +87,6 @@ while True:
 
 
 
-    coord = cv2.findNonZero(myMask)
     contours, _ = cv2.findContours(myMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
   #  max_contour = contours[0]

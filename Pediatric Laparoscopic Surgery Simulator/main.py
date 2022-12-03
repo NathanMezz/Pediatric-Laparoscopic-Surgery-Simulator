@@ -25,7 +25,7 @@ class GUI(object):
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
         # Setting FPS to 60, may need to lower this for the augmented reality
-        self.cap.set(cv2.CAP_PROP_FPS, 60)
+        self.cap.set(cv2.CAP_PROP_FPS, 30)
 
         ret, frame = self.cap.read()
         self.displayHeight, self.displayWidth, other = frame.shape
@@ -37,7 +37,7 @@ class GUI(object):
 
         frame_width = int(self.cap.get(3))
         frame_height = int(self.cap.get(4))
-        self.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 60, (frame_width, frame_height))
+        self.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (frame_width, frame_height))
 
         cv2.namedWindow(self.windowName)
 
@@ -61,15 +61,15 @@ def main():
             # TODO: Implement the existing AR for this game that doesn't require sensor input
             # Get latest video frame
             ret, frame = GUI.cap.read()
-            cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
-            cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
-            # TODO: implement the object detection
 
+            # Only write/show a frame if there was a new capture
+            if ret == True:
+                cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+                cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
+                # TODO: implement the object detection
 
-
-
-            GUI.out.write(frame)
-            cv2.imshow(GUI.windowName, frame)
+                GUI.out.write(frame)
+                cv2.imshow(GUI.windowName, frame)
 
         elif GUI.image_state == 2:
             ret, frame = GUI.cap.read()

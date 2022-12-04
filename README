@@ -1,12 +1,16 @@
 Repository for SYSC4907 Capstone Engineering Project "Pediatric Laparoscopic Surgery Simulator" at Carleton University (Fall 2022/Winter 2023)
 
-Main.py is the main program for running the project.
-
-HSV.py is a supplmentary program from https://toptechboy.com/tracking-an-object-based-on-color-in-opencv/ which allows a user to
-find an appropriate range of HSV values for specific colour detection
-
-
 Group Members:
 Nathan Mezzomo
 Miles Sutherland
 Titus Priscu
+
+
+Main.py is the main program for running the project.
+
+HSV.py is a supplmentary program from https://toptechboy.com/tracking-an-object-based-on-color-in-opencv/ which allows a user to
+find an appropriate range of HSV values for specific colour detection. Modified to find pixel coordinates of centroids of objects
+
+Two Camera HSV.py is a modified version of HSV.py that implements the same functionality as HSV.py, but with two cameras to allow
+for 3D object tracking
+

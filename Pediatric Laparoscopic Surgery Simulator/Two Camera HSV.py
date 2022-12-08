@@ -81,12 +81,17 @@ cv2.createTrackbar('Sat High', 'myTracker', 250, 255, onTrack4)
 cv2.createTrackbar('Val Low', 'myTracker', 10, 255, onTrack5)
 cv2.createTrackbar('Val High', 'myTracker', 250, 255, onTrack6)
 
+
+
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1, projection='3d')
-ax.set_xlabel('Z')
-ax.set_ylabel('X')
-ax.set_zlabel('Y')
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
 
+x_points = []
+y_points = []
+z_points = []
 
 while True:
     ignore, frame = cam.read()
@@ -122,6 +127,8 @@ while True:
             cv2.circle(frame, (cX1, cY1), 7, (255, 255, 255), -1)
             coords = str(cX1) + ", " + str(cY1)
             cv2.putText(frame, coords, (cX1, cY1), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            x_points.append(cX1)
+            y_points.append(cY1)
 
     for cnt in contours2:
         area = cv2.contourArea(cnt)
@@ -134,6 +141,7 @@ while True:
             cv2.circle(frame2, (cX2, cY2), 7, (255, 255, 255), -1)
             coords = str(cX2) + ", " + str(cY2)
             cv2.putText(frame2, coords, (cX2, cY2), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            z_points.append(cY2)
 
 
 
@@ -149,3 +157,8 @@ while True:
         break
 cam.release()
 cam2.release()
+
+ax.plot3D(x_points,y_points,z_points, 'blue')
+
+ax.scatter3D(x_points, y_points, z_points, c ='red');
+plt.show()

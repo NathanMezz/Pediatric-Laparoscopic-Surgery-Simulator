@@ -8,6 +8,8 @@ Modified to work with two cameras to test finding 3D coordinates of an object
 '''
 import cv2
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 print(cv2.__version__)
 
@@ -79,6 +81,13 @@ cv2.createTrackbar('Sat High', 'myTracker', 250, 255, onTrack4)
 cv2.createTrackbar('Val Low', 'myTracker', 10, 255, onTrack5)
 cv2.createTrackbar('Val High', 'myTracker', 250, 255, onTrack6)
 
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1, projection='3d')
+ax.set_xlabel('Z')
+ax.set_ylabel('X')
+ax.set_zlabel('Y')
+
+
 while True:
     ignore, frame = cam.read()
     ignore2, frame2 = cam2.read()
@@ -107,24 +116,25 @@ while True:
 
         if area > 50:
             M = cv2.moments(cnt)
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
+            cX1 = int(M["m10"] / M["m00"])
+            cY1 = int(M["m01"] / M["m00"])
             cv2.drawContours(frame, [cnt], -1, (0, 255, 0), 2)
-            cv2.circle(frame, (cX, cY), 7, (255, 255, 255), -1)
-            coords = str(cX) + ", " + str(cY)
-            cv2.putText(frame, coords, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            cv2.circle(frame, (cX1, cY1), 7, (255, 255, 255), -1)
+            coords = str(cX1) + ", " + str(cY1)
+            cv2.putText(frame, coords, (cX1, cY1), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
     for cnt in contours2:
         area = cv2.contourArea(cnt)
 
         if area > 50:
             M = cv2.moments(cnt)
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
+            cX2 = int(M["m10"] / M["m00"])
+            cY2 = int(M["m01"] / M["m00"])
             cv2.drawContours(frame2, [cnt], -1, (0, 255, 0), 2)
-            cv2.circle(frame2, (cX, cY), 7, (255, 255, 255), -1)
-            coords = str(cX) + ", " + str(cY)
-            cv2.putText(frame2, coords, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            cv2.circle(frame2, (cX2, cY2), 7, (255, 255, 255), -1)
+            coords = str(cX2) + ", " + str(cY2)
+            cv2.putText(frame2, coords, (cX2, cY2), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
 
 
 

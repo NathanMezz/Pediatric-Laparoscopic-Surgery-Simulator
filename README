@@ -12,5 +12,7 @@ HSV.py is a supplmentary program from https://toptechboy.com/tracking-an-object-
 find an appropriate range of HSV values for specific colour detection. Modified to find pixel coordinates of centroids of objects
 
 Two Camera HSV.py is a modified version of HSV.py that implements the same functionality as HSV.py, but with two cameras to allow
-for 3D object tracking
+for 3D object tracking. Attempting to combine two sets of 2D coordinates into one 3D coordinate set.
+
+3D plot test.py was for experimening with the matplotlib library and 3D plotting an array of points.
 

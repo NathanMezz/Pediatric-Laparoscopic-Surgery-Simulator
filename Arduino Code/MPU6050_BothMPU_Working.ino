@@ -1,11 +1,11 @@
 #include <Wire.h>
 const int MPU2 = 0x69, MPU1=0x68;
 
-//Data Values for Left MPU located at 0x69 
+//Data Values for Left MPU located at 0x68
 long accelX, accelY, accelZ; 
 float gForceX, gForceY, gForceZ, gyroX, gyroY, gyroZ,rotX, rotY, rotZ;
 
-//Data Values for RIght MPU Located at 0x68 
+//Data Values for Right MPU Located at 0x69
 long accelX2, accelY2, accelZ2;
 float gForceX2, gForceY2, gForceZ2, gyroX2, gyroY2, gyroZ2, rotX2, rotY2, rotZ2;;
 

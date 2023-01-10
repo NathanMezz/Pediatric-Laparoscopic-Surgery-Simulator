@@ -53,14 +53,12 @@ class GUI(object):
         self.font = font
         self.windowName = windowName
 
-        self.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc(*'MJPG'), 15, (self.displayWidth, self.displayHeight))
+
 
         cv2.namedWindow(self.windowName)
         end = time.time()
         time_elapsed = end-start
         print("Program ready. It took ", time_elapsed, " seconds to start")
-
-
 
 def main():
     '''
@@ -71,6 +69,27 @@ def main():
     -1 = quit
     0 = main menu
     '''
+
+
+    def play_video():
+
+        vid = cv2.VideoCapture("outpy.avi")
+        if(vid.isOpened() == False):
+            print("Error opening video file")
+
+        while(vid.isOpened()):
+
+            ret,frame = vid.read()
+            if ret == True:
+                print("test")
+                cv2.imshow(GUI.windowName, frame)
+            else:
+                break
+
+        vid.release()
+        GUI.image_state = 0
+
+
 
     # TODO: If this gets bulky, should generalize text locations to simplify future modifications
     def evaluate_state():
@@ -87,7 +106,9 @@ def main():
                 cv2.putText(frame, "Date: " + str(datetime.datetime.now()),(500, 500), GUI.font, 1, (0, 0, 255), 2)
                 # TODO: implement the object detection
 
-                GUI.out.write(frame)
+                out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc(*'MJPG'), 15,
+                                           (GUI.displayWidth, GUI.displayHeight))
+                out.write(frame)
                 cv2.imshow(GUI.windowName, frame)
 
             # Wait for time needed to finish frame duration, not helping...
@@ -126,6 +147,8 @@ def main():
                     GUI.image_state = -1    # Quit
                 # Bottom right click
                 elif y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
+                    GUI.image_state = 3
+                    play_video()
                     print("Bottom right, not set to anything yet")   # TODO: Tutorial Videos?
             # Ring Task options
             elif GUI.image_state == 1:

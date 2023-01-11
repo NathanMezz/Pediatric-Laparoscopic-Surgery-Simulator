@@ -40,7 +40,7 @@ class GUI(object):
 
 
         # Use this when using direct show setting, otherwise it slows down the startup
-        self.cap.set(cv2.CAP_PROP_FPS, 15)
+        self.cap.set(cv2.CAP_PROP_FPS, 30)
         print(self.cap.get(cv2.CAP_PROP_FPS))
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
 
@@ -52,6 +52,8 @@ class GUI(object):
         self.main_menu = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
         self.font = font
         self.windowName = windowName
+
+        self.out = None # defining variable for future assignment
 
 
 
@@ -83,6 +85,10 @@ def main():
             if ret == True:
                 print("test")
                 cv2.imshow(GUI.windowName, frame)
+
+                # Press Q on keyboard to exit video at anytime
+                if cv2.waitKey(25) & 0xFF == ord('q'):
+                    break
             else:
                 break
 
@@ -106,19 +112,18 @@ def main():
                 cv2.putText(frame, "Date: " + str(datetime.datetime.now()),(500, 500), GUI.font, 1, (0, 0, 255), 2)
                 # TODO: implement the object detection
 
-                out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc(*'MJPG'), 15,
-                                           (GUI.displayWidth, GUI.displayHeight))
-                out.write(frame)
-                cv2.imshow(GUI.windowName, frame)
 
-            # Wait for time needed to finish frame duration, not helping...
-            #cv2.waitKey(int(1/30*1000))
+                GUI.out.write(frame)
+                cv2.imshow(GUI.windowName, frame)
 
         elif GUI.image_state == 2:
             ret, frame = GUI.cap.read()
             cv2.putText(frame, "Suturing Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, frame)
+
+        elif GUI.image_state == 3:
+            play_video()
         elif GUI.image_state == 0:
             cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (320, 360), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.main_menu, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
@@ -138,6 +143,8 @@ def main():
                 # Sectioning window into 4 corners
                 # Top left click
                 if y < GUI.displayHeight/2 and x < GUI.displayWidth/2:
+                    GUI.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc(*'MJPG'), 30,
+                                          (GUI.displayWidth, GUI.displayHeight))
                     GUI.image_state = 1     # Ring Task
                 # Top right click
                 elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
@@ -148,7 +155,6 @@ def main():
                 # Bottom right click
                 elif y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
                     GUI.image_state = 3
-                    play_video()
                     print("Bottom right, not set to anything yet")   # TODO: Tutorial Videos?
             # Ring Task options
             elif GUI.image_state == 1:
@@ -162,11 +168,9 @@ def main():
 
     cv2.setMouseCallback("Test Window", mouse_event)
 
-
     # While running, make required calls to evaluate the current program state
     while True:
         evaluate_state()
-
         # Can press "q" key anytime to quit, no matter GUI state
         key = cv2.waitKey(1)
         if key == ord("q") or GUI.image_state == -1:    # state -1 will tell program to quit

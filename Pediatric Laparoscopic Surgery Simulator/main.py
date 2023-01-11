@@ -11,38 +11,56 @@ Last Edited: November 17, 2022
 
 import cv2
 import numpy as np
+import time
+import datetime
 
 # Class for GUI
 class GUI(object):
-    def __init__(self, cameraID, font, windowName):
+
+    def test_button(self):
+        print("Test button pressed")
+    def __init__(self, cameraID, font, windowName, displayWidth, displayHeight):
         self.image_state = 0
 
-        self.cap = cv2.VideoCapture(cameraID)  # Camera ID can be 0, 1, etc.
-        self.object_detector = cv2.createBackgroundSubtractorMOG2()
+        start = time.time()
+        print("Starting program. Please allow a few seconds...")
+        '''
+         Using cv2.CAP_DSHOW after cameraID specifies direct show, lets program start/open camera much faster.
+            - Video recording FPS is incorrect with this though (Using 15fps makes it better, cant hold 30 fps maybe?)
+         Some cameras start faster than others
+         '''
+        self.cap = cv2.VideoCapture(cameraID, cv2.CAP_DSHOW)
 
-        # Setting video capture size to be 1280x720p
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        self.displayWidth = displayWidth
+        self.displayHeight = displayHeight
 
-        # Setting FPS to 60, may need to lower this for the augmented reality
+        # Setting video capture size to be 1280x720p -> This slows startup considerably (Most sets do I think?)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.displayWidth)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.displayHeight)
+
+
+        # Use this when using direct show setting, otherwise it slows down the startup
         self.cap.set(cv2.CAP_PROP_FPS, 30)
+        print(self.cap.get(cv2.CAP_PROP_FPS))
+        self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
+
 
         ret, frame = self.cap.read()
-        self.displayHeight, self.displayWidth, other = frame.shape
+
 
         # Main menu image
-        self.main_menu = np.zeros([720, 1280, 3], np.uint8)
+        self.main_menu = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
         self.font = font
         self.windowName = windowName
 
-        frame_width = int(self.cap.get(3))
-        frame_height = int(self.cap.get(4))
-        self.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30, (frame_width, frame_height))
+        self.out = None # defining variable for future assignment
+
+
 
         cv2.namedWindow(self.windowName)
-
-
-
+        end = time.time()
+        time_elapsed = end-start
+        print("Program ready. It took ", time_elapsed, " seconds to start")
 
 def main():
     '''
@@ -53,6 +71,31 @@ def main():
     -1 = quit
     0 = main menu
     '''
+
+
+    def play_video():
+
+        vid = cv2.VideoCapture("outpy.avi")
+        if(vid.isOpened() == False):
+            print("Error opening video file")
+
+        while(vid.isOpened()):
+
+            ret,frame = vid.read()
+            if ret == True:
+                print("test")
+                cv2.imshow(GUI.windowName, frame)
+
+                # Press Q on keyboard to exit video at anytime
+                if cv2.waitKey(25) & 0xFF == ord('q'):
+                    break
+            else:
+                break
+
+        vid.release()
+        GUI.image_state = 0
+
+
 
     # TODO: If this gets bulky, should generalize text locations to simplify future modifications
     def evaluate_state():
@@ -66,7 +109,9 @@ def main():
             if ret == True:
                 cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
                 cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
+                cv2.putText(frame, "Date: " + str(datetime.datetime.now()),(500, 500), GUI.font, 1, (0, 0, 255), 2)
                 # TODO: implement the object detection
+
 
                 GUI.out.write(frame)
                 cv2.imshow(GUI.windowName, frame)
@@ -76,6 +121,9 @@ def main():
             cv2.putText(frame, "Suturing Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, frame)
+
+        elif GUI.image_state == 3:
+            play_video()
         elif GUI.image_state == 0:
             cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (320, 360), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.main_menu, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
@@ -95,19 +143,19 @@ def main():
                 # Sectioning window into 4 corners
                 # Top left click
                 if y < GUI.displayHeight/2 and x < GUI.displayWidth/2:
-                    print("Top left")
+                    GUI.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc(*'MJPG'), 30,
+                                          (GUI.displayWidth, GUI.displayHeight))
                     GUI.image_state = 1     # Ring Task
                 # Top right click
                 elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
-                    print("Top right")
                     GUI.image_state = 2     # Suturing Task
                 # Bottom left click
                 elif y > GUI.displayHeight/2 and x < GUI.displayWidth/2:
-                    print("Bottom left")
                     GUI.image_state = -1    # Quit
                 # Bottom right click
                 elif y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
-                    print("Bottom right")   # TODO: Tutorial Videos?
+                    GUI.image_state = 3
+                    print("Bottom right, not set to anything yet")   # TODO: Tutorial Videos?
             # Ring Task options
             elif GUI.image_state == 1:
                 if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:
@@ -120,11 +168,9 @@ def main():
 
     cv2.setMouseCallback("Test Window", mouse_event)
 
-
     # While running, make required calls to evaluate the current program state
     while True:
         evaluate_state()
-
         # Can press "q" key anytime to quit, no matter GUI state
         key = cv2.waitKey(1)
         if key == ord("q") or GUI.image_state == -1:    # state -1 will tell program to quit
@@ -135,9 +181,11 @@ if __name__ == '__main__':
     cameraID = 0 # Set Camera ID to change camera input (0, 1, etc.)
     font = cv2.FONT_HERSHEY_SIMPLEX
     windowName = "Test Window"
+    displayWidth = 1280
+    displayHeight = 720
 
     # Create an instance of "GUI"
-    GUI = GUI(cameraID, font, windowName)
+    GUI = GUI(cameraID, font, windowName, displayWidth, displayHeight)
 
     # Call to execute main method
     main()

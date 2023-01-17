@@ -127,7 +127,8 @@ def main():
         elif GUI.image_state == 0:
             cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (320, 360), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.main_menu, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
-            cv2.putText(GUI.main_menu, "Suturing Task", (1025, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.main_menu, "Suturing Task", (1030, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.main_menu, "Watch Previous Attempt", (880, 685), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.main_menu, "Quit", (25, 685), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, GUI.main_menu)
 
@@ -166,7 +167,7 @@ def main():
                     GUI.image_state = 0  # Back to main menu
 
 
-    cv2.setMouseCallback("Test Window", mouse_event)
+    cv2.setMouseCallback(GUI.windowName, mouse_event)
 
     # While running, make required calls to evaluate the current program state
     while True:
@@ -180,7 +181,7 @@ def main():
 if __name__ == '__main__':
     cameraID = 0 # Set Camera ID to change camera input (0, 1, etc.)
     font = cv2.FONT_HERSHEY_SIMPLEX
-    windowName = "Test Window"
+    windowName = "Pediatric Laparoscopic Training Simulator"
     displayWidth = 1280
     displayHeight = 720
 

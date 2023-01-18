@@ -83,7 +83,6 @@ def main():
 
             ret,frame = vid.read()
             if ret == True:
-                print("test")
                 cv2.imshow(GUI.windowName, frame)
 
                 # Press Q on keyboard to exit video at anytime
@@ -109,8 +108,8 @@ def main():
             if ret == True:
                 cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
                 cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
-                cv2.putText(frame, "Date: " + str(datetime.datetime.now()),(500, 500), GUI.font, 1, (0, 0, 255), 2)
-                # TODO: implement the object detection
+               # cv2.putText(frame, "Date: " + str(datetime.datetime.now()),(500, 500), GUI.font, 1, (0, 0, 255), 2)
+                # TODO: ring task
 
 
                 GUI.out.write(frame)
@@ -179,7 +178,7 @@ def main():
             break
 
 if __name__ == '__main__':
-    cameraID = 0 # Set Camera ID to change camera input (0, 1, etc.)
+    cameraID = 1 # Set Camera ID to change camera input (0, 1, etc.)
     font = cv2.FONT_HERSHEY_SIMPLEX
     windowName = "Pediatric Laparoscopic Training Simulator"
     displayWidth = 1280

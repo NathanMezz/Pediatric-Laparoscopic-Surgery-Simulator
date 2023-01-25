@@ -19,7 +19,7 @@ class GUI(object):
 
     def test_button(self):
         print("Test button pressed")
-    def __init__(self, cameraID, font, windowName, displayWidth, displayHeight):
+    def __init__(self, cameraID, font, windowName, displayWidth, displayHeight, red_low, red_high):
         self.image_state = 0
 
         start = time.time()
@@ -33,6 +33,10 @@ class GUI(object):
 
         self.displayWidth = displayWidth
         self.displayHeight = displayHeight
+
+        self.red_low = red_low
+        self.red_high = red_high
+
 
         # Setting video capture size to be 1280x720p -> This slows startup considerably (Most sets do I think?)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.displayWidth)
@@ -106,11 +110,24 @@ def main():
 
             # Only write/show a frame if there was a new capture
             if ret == True:
-                cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
-                cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
+
                # cv2.putText(frame, "Date: " + str(datetime.datetime.now()),(500, 500), GUI.font, 1, (0, 0, 255), 2)
                 # TODO: ring task
+                task_state = 1
+                frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+                lowerBound = GUI.red_low
+                upperBound = GUI.red_high
+                myMask = cv2.inRange(frameHSV, lowerBound, upperBound)
 
+                contours,_ = cv2.findContours(myMask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+                cv2.putText(frame, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
+                cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
+                for cnt in contours:
+                    area = cv2.contourArea(cnt)
+                    if area > 150:
+                        (x, y, w, h) = cv2.boundingRect(cnt)
+                        cv2.rectangle(frame, (x - 20, y - 20), (x + 20 + w, y + 20 + h), (255, 0, 0), 2)
 
                 GUI.out.write(frame)
                 cv2.imshow(GUI.windowName, frame)
@@ -183,9 +200,12 @@ if __name__ == '__main__':
     windowName = "Pediatric Laparoscopic Training Simulator"
     displayWidth = 1280
     displayHeight = 720
-
+    red_range_low = np.array([0, 200, 100])  # [H, S, V]
+    red_range_high = np.array([15, 255, 255])
     # Create an instance of "GUI"
-    GUI = GUI(cameraID, font, windowName, displayWidth, displayHeight)
+    GUI = GUI(cameraID, font, windowName, displayWidth, displayHeight,
+              red_range_low, red_range_high)
+
 
     # Call to execute main method
     main()

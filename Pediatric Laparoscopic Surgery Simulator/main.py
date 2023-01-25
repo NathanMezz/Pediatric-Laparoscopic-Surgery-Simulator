@@ -88,7 +88,6 @@ def main():
             ret,frame = vid.read()
             if ret == True:
                 cv2.imshow(GUI.windowName, frame)
-
                 # Press Q on keyboard to exit video at anytime
                 if cv2.waitKey(25) & 0xFF == ord('q'):
                     break
@@ -125,7 +124,7 @@ def main():
                 cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
                 for cnt in contours:
                     area = cv2.contourArea(cnt)
-                    if area > 150:
+                    if area > 150 and area < 4000:
                         (x, y, w, h) = cv2.boundingRect(cnt)
                         cv2.rectangle(frame, (x - 20, y - 20), (x + 20 + w, y + 20 + h), (255, 0, 0), 2)
 
@@ -200,11 +199,17 @@ if __name__ == '__main__':
     windowName = "Pediatric Laparoscopic Training Simulator"
     displayWidth = 1280
     displayHeight = 720
-    red_range_low = np.array([0, 200, 100])  # [H, S, V]
-    red_range_high = np.array([15, 255, 255])
+    # HSV ranges
+    red_low = np.array([0, 200, 100])  # [H, S, V]
+    red_high = np.array([15, 255, 255])
+   # green_low = np.array()
+  #  green_high = np.array()
+   # blue_low = np.array()
+   # blue_high = np.array()
+
     # Create an instance of "GUI"
     GUI = GUI(cameraID, font, windowName, displayWidth, displayHeight,
-              red_range_low, red_range_high)
+              red_low, red_high)
 
 
     # Call to execute main method

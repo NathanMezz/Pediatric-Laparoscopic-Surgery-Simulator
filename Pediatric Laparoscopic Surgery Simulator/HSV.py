@@ -87,7 +87,7 @@ while True:
 
 
 
-    contours, _ = cv2.findContours(myMask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(myMask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     height, width, _ = frame.shape
     min_x, min_y = width, height
@@ -97,21 +97,21 @@ while True:
     for cnt in contours:
         area = cv2.contourArea(cnt)
 
-        if area > 200:
+        if area > 150:
             M = cv2.moments(cnt)
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
-            cv2.drawContours(frame, [cnt], -1, (0, 255, 0), 2)
+          #  cv2.drawContours(frame, [cnt], -1, (0, 255, 0), 2)
             #cv2.circle(frame, (cX, cY), 7, (255, 255, 255), -1)
             coords = str(cX) + ", " + str(cY)
             (x, y, w, h) = cv2.boundingRect(cnt)
             min_x, max_x = min(x, min_x), max(x+w, max_x)
             min_y, max_y = min(y, min_y), max(y+h, max_y)
-          #  cv2.rectangle(frame, (x-20,y-20), (x+20+w,y+20+h), (255,0,0), 2)
-    cv2.floodFill(frame, np.zeros((height + 2, width + 2), np.uint8), (0, 0), 0)
+            cv2.rectangle(frame, (x-20,y-20), (x+20+w,y+20+h), (255,0,0), 2)
+            #cv2.floodFill(frame, np.zeros((height + 2, width + 2), np.uint8), (0, 0), 0)
 
 
-         #   cv2.putText(frame, coords, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            cv2.putText(frame, coords, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
 
 

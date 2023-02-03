@@ -147,12 +147,13 @@ def main():
                 contour_count = 0
                 for cnt in contours:
                     area = cv2.contourArea(cnt)
-                    if area > 150 and area < 4500:
+                    if area > 150 and area < 6250:
+                        print(area)
                         contour_count += 1
                         (x, y, w, h) = cv2.boundingRect(cnt)
                         cv2.rectangle(frame, (x - 20, y - 20), (x + 20 + w, y + 20 + h), (255, 0, 0), 2)
 
-                # if contour count < 2 for x seconds, move onto next task state
+                # if contour count < 2 for 2 seconds, move onto next task state
                 print(contour_count , "" , time.time(), " " , GUI.timer)
                 print(GUI.task_state)
                 if(contour_count < 2 and (time.time() - GUI.timer > 2)):
@@ -234,12 +235,12 @@ if __name__ == '__main__':
     displayWidth = 1280
     displayHeight = 720
     # HSV ranges
-    red_low = np.array([0, 200, 100])  # [H, S, V]
+    red_low = np.array([0, 200, 150])  # [H, S, V]
     red_high = np.array([15, 255, 255])
     green_low = np.array([25, 100, 50])
     green_high = np.array([95, 255, 255])
-    blue_low = np.array([100, 180, 50])
-    blue_high = np.array([145, 255, 255])
+    blue_low = np.array([75, 65, 70])
+    blue_high = np.array([160, 255, 255])
 
     # Create an instance of "GUI"
     GUI = GUI(cameraID, font, windowName, displayWidth, displayHeight,

@@ -197,6 +197,7 @@ def main():
                                           (GUI.displayWidth, GUI.displayHeight))
                     GUI.image_state = 1     # Ring Task
                     GUI.task_state = 1
+                    GUI.timer = time.time()
                 # Top right click
                 elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
                     GUI.image_state = 2     # Suturing Task

@@ -133,7 +133,6 @@ def main():
             if ret == True:
 
                 # cv2.putText(frame, "Date: " + str(datetime.datetime.now()),(500, 500), GUI.font, 1, (0, 0, 255), 2)
-                # TODO: ring task
                 frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
                # task_state = 1 # Red ring/peg
                 lower_bound = None
@@ -226,6 +225,8 @@ def main():
     # While running, make required calls to evaluate the current program state
     while True:
         evaluate_state()
+        #TODO: add live-feedback checker
+
         # Can press "q" key anytime to quit, no matter GUI state
         key = cv2.waitKey(1)
         if key == ord("q") or GUI.image_state == -1:    # state -1 will tell program to quit
@@ -249,7 +250,6 @@ if __name__ == '__main__':
     # Create an instance of "GUI"
     GUI = GUI(cameraID, font, windowName, displayWidth, displayHeight,
               red_low, red_high, green_low, green_high, blue_low, blue_high)
-
 
     # Call to execute main method
     main()

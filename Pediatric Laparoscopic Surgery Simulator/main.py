@@ -104,6 +104,22 @@ def main():
         vid.release()
         GUI.image_state = 0
 
+    # set detection bounds based off task state
+    def setBounds():
+        if (GUI.task_state == 1):  # red
+            lower_bound = GUI.red_low
+            upper_bound = GUI.red_high
+        elif (GUI.task_state == 2):  # green
+            lower_bound = GUI.green_low
+            upper_bound = GUI.green_high
+        elif (GUI.task_state == 3):  # blue
+            lower_bound = GUI.blue_low
+            upper_bound = GUI.blue_high
+        else:
+            lower_bound = np.array([255, 255, 255])
+            upper_bound = np.array([255, 255, 255])
+            GUI.image_state = 0
+
 
     # TODO: If this gets bulky, should generalize text locations to simplify future modifications
     def evaluate_state():
@@ -124,19 +140,7 @@ def main():
                 upper_bound = None
 
                 #set detection bounds based off task state
-                if(GUI.task_state == 1): # red
-                    lower_bound = GUI.red_low
-                    upper_bound = GUI.red_high
-                elif(GUI.task_state == 2): # green
-                    lower_bound = GUI.green_low
-                    upper_bound = GUI.green_high
-                elif(GUI.task_state == 3): # blue
-                    lower_bound = GUI.blue_low
-                    upper_bound = GUI.blue_high
-                else:
-                    lower_bound = np.array([255, 255, 255])
-                    upper_bound = np.array([255, 255, 255])
-                    GUI.image_state = 0
+                setBounds()
 
                 myMask = cv2.inRange(frameHSV, lower_bound, upper_bound)
 
@@ -193,8 +197,7 @@ def main():
                 # Sectioning window into 4 corners
                 # Top left click
                 if y < GUI.displayHeight/2 and x < GUI.displayWidth/2:
-                    GUI.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc(*'MJPG'), 30,
-                                          (GUI.displayWidth, GUI.displayHeight))
+                    GUI.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc(*'MJPG'), 30, (GUI.displayWidth, GUI.displayHeight))
                     GUI.image_state = 1     # Ring Task
                     GUI.task_state = 1
                     GUI.timer = time.time()

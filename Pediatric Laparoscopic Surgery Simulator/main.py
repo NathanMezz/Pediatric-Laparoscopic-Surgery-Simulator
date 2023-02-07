@@ -6,7 +6,7 @@ Run this file to run the project
 
 Author: Nathan Mezzomo
 Date Created: November 2, 2022
-Last Edited: November 17, 2022
+Last Edited: February 8, 2023
 '''
 
 import cv2
@@ -158,7 +158,7 @@ def main():
                 print(GUI.task_state)
                 if(contour_count < 2 and (time.time() - GUI.timer > 2)):
                     GUI.timer = time.time()
-                    GUI.task_state += 1
+                    GUI.task_state += 1 # move into next state
                 elif(contour_count > 1):
                     GUI.timer = time.time() # reset timer
 

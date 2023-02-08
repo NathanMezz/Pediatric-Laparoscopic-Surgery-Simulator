@@ -14,6 +14,7 @@ import numpy as np
 import time
 import datetime
 
+from sensor_data import *
 # Class for GUI
 class GUI(object):
 
@@ -184,6 +185,7 @@ def main():
             cv2.putText(GUI.main_menu, "Quit", (25, 685), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, GUI.main_menu)
 
+
     def quit_program():
         GUI.cap.release()
         cv2.destroyAllWindows
@@ -250,6 +252,5 @@ if __name__ == '__main__':
     # Create an instance of "GUI"
     GUI = GUI(cameraID, font, windowName, displayWidth, displayHeight,
               red_low, red_high, green_low, green_high, blue_low, blue_high)
-
     # Call to execute main method
     main()

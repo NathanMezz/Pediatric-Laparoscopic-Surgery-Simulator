@@ -19,7 +19,7 @@ class GUI(object):
 
     def __init__(self, cameraID, font, windowName, displayWidth, displayHeight, red_low, red_high,
                  green_low, green_high, blue_low, blue_high):
-        self.image_state = 0
+        self.image_state = 5
 
         start = time.time()
         print("Starting program. Please allow a few seconds...")
@@ -59,12 +59,16 @@ class GUI(object):
 
         # Main menu image
         self.main_menu = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
+
+        self.startup_screen = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
         self.font = font
         self.windowName = windowName
 
         self.out = None # defining variable for future assignment
 
         self.ser = None
+
+        self.startup_count = 0
 
         cv2.namedWindow(self.windowName)
         end = time.time()
@@ -147,7 +151,6 @@ def main():
                     lower_bound = np.array([255, 255, 255])
                     upper_bound = np.array([255, 255, 255])
                     GUI.image_state = 0
-                    stop_sensors()
                     return
                     
 
@@ -194,12 +197,19 @@ def main():
             cv2.putText(GUI.main_menu, "Watch Previous Attempt", (880, 685), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.main_menu, "Quit", (25, 685), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, GUI.main_menu)
+        elif GUI.image_state == 5:
+            cv2.putText(GUI.startup_screen, "Starting sensors, please wait...", (320, 360), GUI.font, 1, (0, 0, 255), 2)
+            cv2.imshow(GUI.windowName, GUI.startup_screen)
+            start_sensors()
+            key = cv2.waitKey(15000)
+            #time.sleep(15)
+            GUI.image_state = 0
 
 
     def quit_program():
         GUI.cap.release()
         cv2.destroyAllWindows
-
+        stop_sensors()
     def mouse_event(event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
             # Section state changes based on current GUI state
@@ -211,6 +221,7 @@ def main():
                     GUI.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc(*'MJPG'), 30, (GUI.displayWidth, GUI.displayHeight))
                     GUI.image_state = 1     # Ring Task
                     GUI.task_state = 1
+                    GUI.ser.flushInput()
                     GUI.timer = time.time()
 
                 # Top right click
@@ -234,7 +245,9 @@ def main():
 
 
     cv2.setMouseCallback(GUI.windowName, mouse_event)
-    start_sensors()
+
+    print("Starting Sensors, please wait at least 16 seconds")
+    #time.sleep(15)
     # While running, make required calls to evaluate the current program state
     while True:
         evaluate_state()

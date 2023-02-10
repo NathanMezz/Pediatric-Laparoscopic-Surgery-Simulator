@@ -12,14 +12,11 @@ Last Edited: February 8, 2023
 import cv2
 import numpy as np
 import time
-import datetime
+import serial
 
-from sensor_data import *
 # Class for GUI
 class GUI(object):
 
-    def test_button(self):
-        print("Test button pressed")
     def __init__(self, cameraID, font, windowName, displayWidth, displayHeight, red_low, red_high,
                  green_low, green_high, blue_low, blue_high):
         self.image_state = 0
@@ -67,7 +64,7 @@ class GUI(object):
 
         self.out = None # defining variable for future assignment
 
-
+        self.ser = None
 
         cv2.namedWindow(self.windowName)
         end = time.time()
@@ -84,7 +81,18 @@ def main():
     0 = main menu
     '''
 
+    def stop_sensors():
+        GUI.ser.close()
 
+    '''Open serial port to start sensor data collection'''
+    def start_sensors():
+        try:
+            GUI.ser = serial.Serial('COM5', 9600)
+            print("test")
+        except serial.SerialException:
+            serial.Serial('COM5', 9600).close()
+            GUI.ser = serial.Serial('COM5', 9600)
+            print("test2")
     def play_video():
 
         vid = cv2.VideoCapture("outpy.avi")
@@ -106,20 +114,7 @@ def main():
         GUI.image_state = 0
 
     # set detection bounds based off task state
-    def setBounds():
-        if (GUI.task_state == 1):  # red
-            lower_bound = GUI.red_low
-            upper_bound = GUI.red_high
-        elif (GUI.task_state == 2):  # green
-            lower_bound = GUI.green_low
-            upper_bound = GUI.green_high
-        elif (GUI.task_state == 3):  # blue
-            lower_bound = GUI.blue_low
-            upper_bound = GUI.blue_high
-        else:
-            lower_bound = np.array([255, 255, 255])
-            upper_bound = np.array([255, 255, 255])
-            GUI.image_state = 0
+
 
 
     # TODO: If this gets bulky, should generalize text locations to simplify future modifications
@@ -132,15 +127,28 @@ def main():
 
             # Only write/show a frame if there was a new capture
             if ret == True:
-
                 # cv2.putText(frame, "Date: " + str(datetime.datetime.now()),(500, 500), GUI.font, 1, (0, 0, 255), 2)
                 frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-               # task_state = 1 # Red ring/peg
+                # task_state = 1 # Red ring/peg
                 lower_bound = None
                 upper_bound = None
 
                 #set detection bounds based off task state
-                setBounds()
+                if (GUI.task_state == 1):  # red
+                    lower_bound = GUI.red_low
+                    upper_bound = GUI.red_high
+                elif (GUI.task_state == 2):  # green
+                    lower_bound = GUI.green_low
+                    upper_bound = GUI.green_high
+                elif (GUI.task_state == 3):  # blue
+                    lower_bound = GUI.blue_low
+                    upper_bound = GUI.blue_high
+                else:
+                    lower_bound = np.array([255, 255, 255])
+                    upper_bound = np.array([255, 255, 255])
+                    GUI.image_state = 0
+                    stop_sensors()
+                    
 
                 myMask = cv2.inRange(frameHSV, lower_bound, upper_bound)
 
@@ -152,14 +160,15 @@ def main():
                 for cnt in contours:
                     area = cv2.contourArea(cnt)
                     if area > 150 and area < 6250:
-                        print(area)
+                        #print(area)
                         contour_count += 1
                         (x, y, w, h) = cv2.boundingRect(cnt)
                         cv2.rectangle(frame, (x - 20, y - 20), (x + 20 + w, y + 20 + h), (255, 0, 0), 2)
 
                 # if contour count < 2 for 2 seconds, move onto next task state
-                print(contour_count , "" , time.time(), " " , GUI.timer)
-                print(GUI.task_state)
+                stuff = GUI.ser.readline()
+                stuff_string = stuff.decode()
+                print(stuff_string.rstrip())
                 if(contour_count < 2 and (time.time() - GUI.timer > 2)):
                     GUI.timer = time.time()
                     GUI.task_state += 1 # move into next state
@@ -202,6 +211,7 @@ def main():
                     GUI.image_state = 1     # Ring Task
                     GUI.task_state = 1
                     GUI.timer = time.time()
+
                 # Top right click
                 elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
                     GUI.image_state = 2     # Suturing Task
@@ -223,7 +233,7 @@ def main():
 
 
     cv2.setMouseCallback(GUI.windowName, mouse_event)
-
+    start_sensors()
     # While running, make required calls to evaluate the current program state
     while True:
         evaluate_state()

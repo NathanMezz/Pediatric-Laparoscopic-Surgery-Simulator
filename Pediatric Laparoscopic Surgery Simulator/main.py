@@ -148,6 +148,7 @@ def main():
                     upper_bound = np.array([255, 255, 255])
                     GUI.image_state = 0
                     stop_sensors()
+                    return
                     
 
                 myMask = cv2.inRange(frameHSV, lower_bound, upper_bound)

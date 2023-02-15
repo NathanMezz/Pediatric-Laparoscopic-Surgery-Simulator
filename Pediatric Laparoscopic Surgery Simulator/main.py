@@ -26,14 +26,14 @@ class GUI(object):
 
         start = time.time()
         print("Starting program. Please allow a few seconds...")
-        '''
-         Using cv2.CAP_DSHOW after cameraID specifies direct show, lets program start/open camera much faster.
-        '''
+
+        # Using cv2.CAP_DSHOW after cameraID specifies direct show, lets program start/open camera much faster.
         self.cap = cv2.VideoCapture(cameraID, cv2.CAP_DSHOW)
 
         self.displayWidth = displayWidth
         self.displayHeight = displayHeight
 
+        # HSV detection values
         self.red_low = red_low
         self.red_high = red_high
         self.green_low = green_low
@@ -41,7 +41,7 @@ class GUI(object):
         self.blue_low = blue_low
         self.blue_high = blue_high
 
-        self.task_state = 0 # ring task states
+        self.task_state = 0 # Ring/suturing task states
         self.timer = 0 # timer variable for moving between task states in ring task
 
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.displayWidth)
@@ -57,15 +57,15 @@ class GUI(object):
         # Main menu image
         self.main_menu = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
 
+        # Startup screen to show sensors starting
         self.startup_screen = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
+
         self.font = font
         self.windowName = windowName
 
-        self.out = None # defining variable for future assignment
-
-        self.ser = None
-
-        self.startup_count = 0
+        # defining variables for future assignment
+        self.out = None     # Video output
+        self.ser = None     # Serial var for sensor data input
 
         cv2.namedWindow(self.windowName)
         end = time.time()
@@ -258,12 +258,13 @@ def main():
                 if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:  # Top Right click
                     GUI.image_state = 0  # Back to main menu
 
-
+    # Calls mouse_event function if mouse is clicked on the open window
     cv2.setMouseCallback(GUI.windowName, mouse_event)
 
     print("Starting Sensors, please wait at least 16 seconds")
-    #time.sleep(15)
-    # While running, make required calls to evaluate the current program state
+    '''
+    While running, make required calls to evaluate the current program state
+    '''
     while True:
         evaluate_state()
         #TODO: add live-feedback checker
@@ -274,8 +275,13 @@ def main():
             quit_program()
             break
 
+'''
+This is the first code that runs at program startup.
+Set any values that may change here before creation of GUI class object
+and call to main()
+'''
 if __name__ == '__main__':
-    cameraID = 1 # Set Camera ID to change camera input (0, 1, etc.)
+    cameraID = 1    # Set Camera ID to change camera input (0, 1, etc.)
     font = cv2.FONT_HERSHEY_SIMPLEX
     windowName = "Pediatric Laparoscopic Training Simulator"
     displayWidth = 1280

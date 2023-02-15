@@ -14,7 +14,10 @@ import numpy as np
 import time
 import serial
 
-# Class for GUI
+'''
+GUI class contains variables for use throughout the program as well as 
+image capture settings, interface settings, etc.
+'''
 class GUI(object):
 
     def __init__(self, cameraID, font, windowName, displayWidth, displayHeight, red_low, red_high,
@@ -70,19 +73,17 @@ class GUI(object):
         print("Program ready. It took ", time_elapsed, " seconds to start")
 
 def main():
-    '''
-    Image states:
-    1 = Ring Task
-    2 = Suturing Task
-    3 = Analysis ? (Maybe split into a couple)
-    -1 = quit
-    0 = main menu
-    '''
 
+
+    '''
+    Closes the serial port to stop sensors
+    '''
     def stop_sensors():
         GUI.ser.close()
 
-    '''Open serial port to start sensor data collection'''
+    '''
+    Open serial port to start sensor data collection
+    '''
     def start_sensors():
         try:
             GUI.ser = serial.Serial('COM5', 9600)
@@ -91,6 +92,10 @@ def main():
             serial.Serial('COM5', 9600).close()
             GUI.ser = serial.Serial('COM5', 9600)
             print("test2")
+
+    '''
+    Plays video of most recent task attempt
+    '''
     def play_video():
 
         vid = cv2.VideoCapture("outpy.avi")
@@ -114,7 +119,17 @@ def main():
     # set detection bounds based off task state
 
 
-
+    '''
+    Checks which state the interface is currently is, and processes information depending
+    on that state.
+    Image States:
+    0 - Main Menu
+    1 - Ring Task
+    2 - Suturing Task
+    3 - Video playback
+    4 - Post Task feedback
+    5 - Sensor startup page (Initial startup screen to wait for sensor startup)
+    '''
     # TODO: If this gets bulky, should generalize text locations to simplify future modifications
     def evaluate_state():
         if GUI.image_state == 1:
@@ -199,11 +214,18 @@ def main():
             #time.sleep(15)
             GUI.image_state = 0
 
-
+    '''
+    Exits program, shuts everything down as needed
+    '''
     def quit_program():
         GUI.cap.release()
         cv2.destroyAllWindows
         stop_sensors()
+
+    '''
+    Looks for left mouse click anywhere on screen.
+    There are different options depending on the which section of the
+    screen is clicked, and which screen is currently active'''
     def mouse_event(event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
             # Section state changes based on current GUI state
@@ -217,7 +239,6 @@ def main():
                     GUI.task_state = 1
                     GUI.ser.flushInput()
                     GUI.timer = time.time()
-
                 # Top right click
                 elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
                     GUI.image_state = 2     # Suturing Task
@@ -230,11 +251,11 @@ def main():
                     print("Bottom right, not set to anything yet")   # TODO: Tutorial Videos?
             # Ring Task options
             elif GUI.image_state == 1:
-                if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:
+                if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:  # Top Right click
                     GUI.image_state = 0  # Back to main menu
             # Suturing Task options
             elif GUI.image_state == 2:
-                if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:
+                if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:  # Top Right click
                     GUI.image_state = 0  # Back to main menu
 
 

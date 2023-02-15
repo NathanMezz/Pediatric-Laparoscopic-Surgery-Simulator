@@ -25,9 +25,7 @@ class GUI(object):
         print("Starting program. Please allow a few seconds...")
         '''
          Using cv2.CAP_DSHOW after cameraID specifies direct show, lets program start/open camera much faster.
-            - Video recording FPS is incorrect with this though (Using 15fps makes it better, cant hold 30 fps maybe?)
-         Some cameras start faster than others
-         '''
+        '''
         self.cap = cv2.VideoCapture(cameraID, cv2.CAP_DSHOW)
 
         self.displayWidth = displayWidth
@@ -43,19 +41,15 @@ class GUI(object):
         self.task_state = 0 # ring task states
         self.timer = 0 # timer variable for moving between task states in ring task
 
-
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.displayWidth)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.displayHeight)
-
 
         # Use this when using direct show setting, otherwise it slows down the startup
         self.cap.set(cv2.CAP_PROP_FPS, 30)
         print(self.cap.get(cv2.CAP_PROP_FPS))
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
 
-
         ret, frame = self.cap.read()
-
 
         # Main menu image
         self.main_menu = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
@@ -163,17 +157,17 @@ def main():
                 contour_count = 0
                 for cnt in contours:
                     area = cv2.contourArea(cnt)
+                    # Only detect countours of this size range, may need changing if camera view of task differs
                     if area > 150 and area < 6250:
-                        #print(area)
                         contour_count += 1
                         (x, y, w, h) = cv2.boundingRect(cnt)
                         cv2.rectangle(frame, (x - 20, y - 20), (x + 20 + w, y + 20 + h), (255, 0, 0), 2)
 
-                # if contour count < 2 for 2 seconds, move onto next task state
+                # if contour count < 2 for 3 seconds, move onto next task state
                 stuff = GUI.ser.readline()
                 stuff_string = stuff.decode()
                 print(stuff_string.rstrip())
-                if(contour_count < 2 and (time.time() - GUI.timer > 2)):
+                if(contour_count < 2 and (time.time() - GUI.timer > 3)):
                     GUI.timer = time.time()
                     GUI.task_state += 1 # move into next state
                 elif(contour_count > 1):
@@ -265,7 +259,11 @@ if __name__ == '__main__':
     windowName = "Pediatric Laparoscopic Training Simulator"
     displayWidth = 1280
     displayHeight = 720
-    # HSV ranges
+
+    '''
+    HSV Ranges
+    Use HSV.py to find appropriate values if recalibration required
+    '''
     red_low = np.array([0, 200, 150])  # [H, S, V]
     red_high = np.array([15, 255, 255])
     green_low = np.array([25, 100, 50])

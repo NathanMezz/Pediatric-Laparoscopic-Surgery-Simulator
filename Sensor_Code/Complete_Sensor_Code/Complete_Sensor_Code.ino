@@ -75,6 +75,7 @@ void loop() {
       Serial.print("Y1:");
       Serial.print(y1);
       Serial.print(" mm   "); 
+      Serial.println();
     }
     if (data2.isOnSurface && data2.isMotion) {
       x2=((data2.dx)/1290) +x2; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
@@ -91,7 +92,7 @@ void loop() {
 
     //Force sensor read at Pin A0 
     int sensorValue = analogRead(A0);
-    Serial.print("Force: ")
+    Serial.print("Force: ");
     Serial.println(sensorValue);
   delay(100); 
 

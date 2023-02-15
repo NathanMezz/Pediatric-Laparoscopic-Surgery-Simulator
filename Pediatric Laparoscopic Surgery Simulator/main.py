@@ -184,7 +184,9 @@ def main():
                 # if contour count < 2 for 3 seconds, move onto next task state
                 stuff = GUI.ser.readline()
                 stuff_string = stuff.decode()
-                print(stuff_string.rstrip())
+                print(stuff_string.rstrip()) # Printing sensor data to console for testing
+
+                #TODO: Process sensor data for warnings, save to file with timestamp...
                 if(contour_count < 2 and (time.time() - GUI.timer > 3)):
                     GUI.timer = time.time()
                     GUI.task_state += 1 # move into next state

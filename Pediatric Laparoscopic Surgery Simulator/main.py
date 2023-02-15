@@ -184,6 +184,8 @@ def main():
                 # if contour count < 2 for 3 seconds, move onto next task state
                 stuff = GUI.ser.readline()
                 stuff_string = stuff.decode()
+
+                # Currently printing during each new frame
                 print(stuff_string.rstrip()) # Printing sensor data to console for testing
 
                 #TODO: Process sensor data for warnings, save to file with timestamp...

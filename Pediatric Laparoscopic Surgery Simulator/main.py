@@ -74,7 +74,6 @@ class GUI(object):
 
 def main():
 
-
     '''
     Closes the serial port to stop sensors
     '''
@@ -123,6 +122,7 @@ def main():
     Checks which state the interface is currently is, and processes information depending
     on that state.
     Image States:
+    -1 - Quit program
     0 - Main Menu
     1 - Ring Task
     2 - Suturing Task
@@ -130,11 +130,16 @@ def main():
     4 - Post Task feedback
     5 - Sensor startup page (Initial startup screen to wait for sensor startup)
     '''
-    # TODO: If this gets bulky, should generalize text locations to simplify future modifications
     def evaluate_state():
+        '''
+        Ring task.
+        States:
+        1 - Red ring/peg
+        2 - Green ring/peg
+        3 - Blue ring/peg
+        other - end of task
+        '''
         if GUI.image_state == 1:
-            # TODO: Try to add tool tip tracking for the AR
-            # TODO: Implement the existing AR for this game that doesn't require sensor input
             # Get latest video frame
             ret, frame = GUI.cap.read()
 
@@ -142,7 +147,6 @@ def main():
             if ret == True:
                 # cv2.putText(frame, "Date: " + str(datetime.datetime.now()),(500, 500), GUI.font, 1, (0, 0, 255), 2)
                 frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-                # task_state = 1 # Red ring/peg
                 lower_bound = None
                 upper_bound = None
 
@@ -158,10 +162,9 @@ def main():
                     upper_bound = GUI.blue_high
                 else:
                     lower_bound = np.array([255, 255, 255])
-                    upper_bound = np.array([255, 255, 255])
+                    upper_bound = np.array([255, 255, 255])     #TODO: Are these needed here?
                     GUI.image_state = 0
                     return
-                    
 
                 myMask = cv2.inRange(frameHSV, lower_bound, upper_bound)
 

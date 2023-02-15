@@ -94,7 +94,7 @@ void loop() {
     int sensorValue = analogRead(A0);
     Serial.print("Force: ");
     Serial.println(sensorValue);
-  delay(100); 
+  //delay(300); 
 
 
 }

@@ -13,19 +13,18 @@ import cv2
 import numpy as np
 import time
 import serial
+import sys
 
 '''
 GUI class contains variables for use throughout the program as well as 
 image capture settings, interface settings, etc.
 '''
+#TODO: Rename to app (?) for more proper naming convention. Not everything GUI related
 class GUI(object):
 
     def __init__(self, cameraID, font, windowName, displayWidth, displayHeight, red_low, red_high,
                  green_low, green_high, blue_low, blue_high):
         self.image_state = 5
-
-        start = time.time()
-        print("Starting program. Please allow a few seconds...")
 
         # Using cv2.CAP_DSHOW after cameraID specifies direct show, lets program start/open camera much faster.
         self.cap = cv2.VideoCapture(cameraID, cv2.CAP_DSHOW)
@@ -44,6 +43,8 @@ class GUI(object):
         self.task_state = 0 # Ring/suturing task states
         self.timer = 0 # timer variable for moving between task states in ring task
 
+        self.task_start = 0 # Time variable to get start time of a task
+
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.displayWidth)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.displayHeight)
 
@@ -57,6 +58,9 @@ class GUI(object):
         # Main menu image
         self.main_menu = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
 
+        #TODO: Feedback page(s)
+        self.feedback_menu = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
+
         # Startup screen to show sensors starting
         self.startup_screen = np.zeros([self.displayHeight, self.displayWidth, 3], np.uint8)
 
@@ -66,14 +70,24 @@ class GUI(object):
         # defining variables for future assignment
         self.out = None     # Video output
         self.ser = None     # Serial var for sensor data input
+        self.file = None    # Sensor data file
+
+
+
+        self.startup_counter = 15 # Counter variable for sensor startup countdown at program start
 
         cv2.namedWindow(self.windowName)
-        end = time.time()
-        time_elapsed = end-start
-        print("Program ready. It took ", time_elapsed, " seconds to start")
+
 
 def main():
 
+    '''
+       Exits program, shuts everything down as needed
+    '''
+    def quit_program():
+        GUI.cap.release()
+        cv2.destroyAllWindows
+        stop_sensors()
     '''
     Closes the serial port to stop sensors
     '''
@@ -91,13 +105,14 @@ def main():
             serial.Serial('COM5', 9600).close()
             GUI.ser = serial.Serial('COM5', 9600)
             print("test2")
+            quit_program()
 
     '''
     Plays video of most recent task attempt
     '''
-    def play_video():
+    def play_video(videoname):
 
-        vid = cv2.VideoCapture("outpy.avi")
+        vid = cv2.VideoCapture(videoname)
         if(vid.isOpened() == False):
             print("Error opening video file")
 
@@ -113,9 +128,9 @@ def main():
                 break
 
         vid.release()
-        GUI.image_state = 0
+        GUI.image_state = 3 # Go back to feedback page
 
-    # set detection bounds based off task state
+    #TODO: set detection bounds based off task state
 
 
     '''
@@ -126,8 +141,8 @@ def main():
     0 - Main Menu
     1 - Ring Task
     2 - Suturing Task
-    3 - Video playback
-    4 - Post Task feedback
+    3 - Feedback
+    4 - not used yet
     5 - Sensor startup page (Initial startup screen to wait for sensor startup)
     '''
     def evaluate_state():
@@ -164,6 +179,7 @@ def main():
                     lower_bound = np.array([255, 255, 255])
                     upper_bound = np.array([255, 255, 255])     #TODO: Are these needed here?
                     GUI.image_state = 0
+                    GUI.file.close()
                     return
 
                 myMask = cv2.inRange(frameHSV, lower_bound, upper_bound)
@@ -185,10 +201,16 @@ def main():
                 stuff = GUI.ser.readline()
                 stuff_string = stuff.decode()
 
-                # Currently printing during each new frame
-                print(stuff_string.rstrip()) # Printing sensor data to console for testing
+                # print(stuff_string.rstrip()) # Printing sensor data to console for testing
+                data = stuff_string.rstrip()
+                # Write sensor data to file with time since task start in seconds
+                GUI.file.write(str(time.time() - GUI.task_start) + "|" + stuff_string.rstrip() + '\n')
+
+                #TODO: Note when reading, check number of variables after split to ensure line is proper length
 
                 #TODO: Process sensor data for warnings, save to file with timestamp...
+
+                # Check contour count, if < 2 for 3 seconds, move onto next ring/peg colour
                 if(contour_count < 2 and (time.time() - GUI.timer > 3)):
                     GUI.timer = time.time()
                     GUI.task_state += 1 # move into next state
@@ -205,29 +227,28 @@ def main():
             cv2.imshow(GUI.windowName, frame)
 
         elif GUI.image_state == 3:
-            play_video()
+            cv2.putText(GUI.feedback_menu, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.feedback_menu, "Watch Previous Attempt", (880, 685), GUI.font, 1, (0, 0, 255), 2)
+            cv2.imshow(GUI.windowName, GUI.feedback_menu)
         elif GUI.image_state == 0:
             cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (320, 360), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.main_menu, "Ring Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.main_menu, "Suturing Task", (1030, 35), GUI.font, 1, (0, 0, 255), 2)
-            cv2.putText(GUI.main_menu, "Watch Previous Attempt", (880, 685), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.main_menu, "View Feedback", (1030, 685), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.main_menu, "Quit", (25, 685), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, GUI.main_menu)
         elif GUI.image_state == 5:
-            cv2.putText(GUI.startup_screen, "Starting sensors, please wait...", (320, 360), GUI.font, 1, (0, 0, 255), 2)
+            GUI.startup_screen = np.zeros([GUI.displayHeight, GUI.displayWidth, 3], np.uint8) # Clear text from window
+            cv2.putText(GUI.startup_screen, "Starting sensors, please wait " + str(GUI.startup_counter) + " seconds...", (320, 360), GUI.font, 1,
+                        (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, GUI.startup_screen)
-            start_sensors()
-            key = cv2.waitKey(15000)
-            #time.sleep(15)
-            GUI.image_state = 0
+            key = cv2.waitKey(1000)
+            GUI.startup_counter -= 1
+          #  key = cv2.waitKey(15000)
+            if(GUI.startup_counter < 0):
+                GUI.image_state = 0
 
-    '''
-    Exits program, shuts everything down as needed
-    '''
-    def quit_program():
-        GUI.cap.release()
-        cv2.destroyAllWindows
-        stop_sensors()
+
 
     '''
     Looks for left mouse click anywhere on screen.
@@ -246,6 +267,8 @@ def main():
                     GUI.task_state = 1
                     GUI.ser.flushInput()
                     GUI.timer = time.time()
+                    GUI.task_start = time.time()
+                    GUI.file = open("sensor_data.txt", "w")
                 # Top right click
                 elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
                     GUI.image_state = 2     # Suturing Task
@@ -254,19 +277,27 @@ def main():
                     GUI.image_state = -1    # Quit
                 # Bottom right click
                 elif y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
-                    GUI.image_state = 3
-                    print("Bottom right, not set to anything yet")   # TODO: Tutorial Videos?
+                    GUI.image_state = 3     # Feedback page
             # Ring Task options
             elif GUI.image_state == 1:
                 if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:  # Top Right click
                     GUI.image_state = 0  # Back to main menu
+                    GUI.file.close()
             # Suturing Task options
             elif GUI.image_state == 2:
                 if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:  # Top Right click
                     GUI.image_state = 0  # Back to main menu
+            # Feedback page options
+            elif GUI.image_state == 3:
+                if y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
+                    play_video("outpy.avi")
+                elif y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:  # Top Right click
+                    GUI.image_state = 0  # Back to main menu
 
     # Calls mouse_event function if mouse is clicked on the open window
     cv2.setMouseCallback(GUI.windowName, mouse_event)
+    # Initial sensor startup
+    start_sensors()
 
     print("Starting Sensors, please wait at least 16 seconds")
     '''

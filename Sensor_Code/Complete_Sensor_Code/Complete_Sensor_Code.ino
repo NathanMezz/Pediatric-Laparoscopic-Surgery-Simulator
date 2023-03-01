@@ -29,6 +29,23 @@ PMW3389 sensor2; //uses SS at Pin 40
 float x2=0; 
 float y2=0; 
 
+float force = 0;
+
+float L_pitch = 0;
+float L_yaw = 0;
+float L_accX = 0;
+float L_accY = 0;
+
+float R_pitch = 0;
+float R_yaw = 0;
+float R_accX = 0;
+float R_accY = 0;
+
+float L_PMW_X = 0;
+float L_PMW_Y = 0;
+
+float R_PMW_X = 0;
+float R_PMW_Y = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -49,51 +66,39 @@ void setup() {
 void loop() {
   //MPU gets data from updates
   mpu6050_1.update();
-  Serial.print("Left Pitch: ");
-  Serial.print(mpu6050_1.getAngleX());
-  Serial.print("\tLeft Yaw: ");
-  Serial.print(mpu6050_1.getAngleY());
+  L_pitch = mpu6050_1.getAngleX();
+  L_yaw = mpu6050_1.getAngleY();
+  L_accX = mpu6050_1.getAccAngleX();
+  L_accY = mpu6050_1.getAccAngleY();
 
   mpu6050_2.update();
-  Serial.print("\tRight Pitch: ");
-  Serial.print(mpu6050_2.getAngleX());
-  Serial.print("\tRight Yaw: ");
-  Serial.print(mpu6050_2.getAngleY());
-  Serial.println("");
+  R_pitch = mpu6050_2.getAngleX();
+  R_yaw = mpu6050_2.getAngleY();
+  R_accX = mpu6050_2.getAccAngleX();
+  R_accY = mpu6050_2.getAccAngleY();
 
 //Get data from PMW3389 sensors via readburst
   PMW3389_DATA data1 = sensor1.readBurst();
   PMW3389_DATA data2 = sensor2.readBurst(); 
 
     if (data1.isOnSurface && data1.isMotion) {
-      x1=((data1.dx)/1290) +x1; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
-      y1=((data1.dy)/1290) +y1;  
-      Serial.print("X1:");    
-      Serial.print(x1);
-      Serial.print(" mm");
-      Serial.print("\t");
-      Serial.print("Y1:");
-      Serial.print(y1);
-      Serial.print(" mm   "); 
-      Serial.println();
+      L_PMW_X=((data1.dx)/1290) + L_PMW_X; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
+      L_PMW_Y=((data1.dy)/1290) + L_PMW_Y;  
     }
     if (data2.isOnSurface && data2.isMotion) {
-      x2=((data2.dx)/1290) +x2; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
-      y2=((data2.dy)/1290) +y2;  
-      Serial.print("\tX2:");    
-      Serial.print(x2);
-      Serial.print(" mm");
-      Serial.print("\t");
-      Serial.print("Y2:");
-      Serial.print(y2);
-      Serial.print(" mm   "); 
-      Serial.println();
+      R_PMW_X=((data2.dx)/1290) +R_PMW_X; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
+      R_PMW_Y=((data2.dy)/1290) +R_PMW_Y;  
     }
 
     //Force sensor read at Pin A0 
-    int sensorValue = analogRead(A0);
-    Serial.print("Force: ");
-    Serial.println(sensorValue);
+    force = (analogRead(A0)-136) * 0.011; //136 offset to try to "zero" the value
+ 
+    Serial.print(String(force) + "|" + String(L_pitch) + "|" + String(L_yaw) + "|" + String(L_accX) + "|" + String(L_accY)
+     + "|" + String(R_pitch) + "|" + String(R_yaw) + "|" + String(R_accX) + "|" + String(R_accY) + "|" + String(L_PMW_X) + "|"
+      + String(L_PMW_Y) + "|" + String(R_PMW_X) + "|" + String(R_PMW_Y) + '\n');
+  
+
+    //Serial.flush();
   //delay(300); 
 
 

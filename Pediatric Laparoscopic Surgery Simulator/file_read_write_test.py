@@ -9,7 +9,7 @@ for i in range(15, 30):
     file.write("testing|line|" + str(i) + '\n')
 
 time = time.time()
-file = open("text.txt", "r")
+file = open("sensor_data.txt", "r")
 lines = file.readlines()[1:] # skip first line
 
 for line in lines:

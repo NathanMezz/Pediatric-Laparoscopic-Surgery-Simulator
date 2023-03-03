@@ -43,6 +43,9 @@ class GUI(object):
         self.task_state = 0 # Ring/suturing task states
         self.timer = 0 # timer variable for moving between task states in ring task
 
+        self.warning_time = 0 #timer variable for keeping warning on screen for X seconds
+        self.keep_warning = [False, False, False]   # Keep warning on screen (each index is a different warning)
+
         self.task_start = 0 # Time variable to get start time of a task
 
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.displayWidth)
@@ -107,6 +110,25 @@ def main():
             print("test2")
             quit_program()
 
+    '''
+    Check sensor data for any possible bad movements throughout a task
+    and add a warning
+    '''
+    def check_sensor_warnings(frame, data):
+        data_split = data.split("|")
+        warning = ""
+
+        if(time.time() - GUI.warning_time > 1):     # Keep last warning on screen for a full second
+            GUI.keep_warning[0] = False
+
+        if (len(data.split("|")) == 9):     # Make sure array of proper length
+            if (float(data_split[0]) > 1.0 or GUI.keep_warning[0] == True):    # If > 1.0 N of force, add warning
+                warning += "Too much force! "
+                if(GUI.keep_warning[0] == False): # Get time at first sign of warning
+                    GUI.warning_time = time.time()
+                GUI.keep_warning[0] = True
+
+        cv2.putText(frame, warning, (500, 650), GUI.font, 1, (0, 0, 255), 2)
     '''
     Plays video of most recent task attempt
     '''
@@ -202,9 +224,10 @@ def main():
                 stuff_string = stuff.decode()
 
                 # print(stuff_string.rstrip()) # Printing sensor data to console for testing
-                data = stuff_string.rstrip()
                 # Write sensor data to file with time since task start in seconds
                 GUI.file.write(str(time.time() - GUI.task_start) + "|" + stuff_string.rstrip() + '\n')
+
+                check_sensor_warnings(frame, stuff_string.rstrip())
 
                 #TODO: Note when reading, check number of variables after split to ensure line is proper length
 
@@ -244,7 +267,6 @@ def main():
             cv2.imshow(GUI.windowName, GUI.startup_screen)
             key = cv2.waitKey(1000)
             GUI.startup_counter -= 1
-          #  key = cv2.waitKey(15000)
             if(GUI.startup_counter < 0):
                 GUI.image_state = 0
 

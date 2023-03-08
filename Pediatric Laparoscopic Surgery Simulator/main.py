@@ -101,12 +101,8 @@ def main():
     def start_sensors():
         try:
             GUI.ser = serial.Serial('COM5', 9600)
-            print("test")
         except serial.SerialException:
-            serial.Serial('COM5', 9600).close()
-            GUI.ser = serial.Serial('COM5', 9600)
-            print("test2")
-            quit_program()
+            exit(1)
 
     '''
     Check if a warning should still be displayed, display if for a full second afterwards
@@ -135,7 +131,9 @@ def main():
 
     '''
     Check sensor data for any possible bad movements throughout a task
-    and add a warning
+    and save the time the warning was detected
+    Calls display_warning function to display that warning
+    max_force can change depending on task, i.e. how much weight is already sitting on force plate
     '''
     def check_sensor_warnings(frame, data, max_force):
         data_split = data.split("|")
@@ -143,24 +141,22 @@ def main():
         if len(data.split("|")) == 9:     # Make sure array of proper length
             if float(data_split[0]) > max_force:   # If > max_force N of force, add warning (dependent on task)
                 GUI.warning_time[0] = time.time()
-            if abs(float(data_split[1])) > 2000.0:   # Left pitch acc
+            if abs(float(data_split[1])) > 600.0:   # Left pitch acc
                 GUI.warning_time[1] = time.time()
-            if abs(float(data_split[2])) > 2000.0:   # Left yaw acc
+            if abs(float(data_split[2])) > 600.0:   # Left yaw acc
                 GUI.warning_time[2] = time.time()
-            if abs(float(data_split[3])) > 2000.0:   # Right pitch acc
+            if abs(float(data_split[3])) > 600.0:   # Right pitch acc
                 GUI.warning_time[3] = time.time()
-            if abs(float(data_split[4])) > 2000.0:   # Right yaw acc
+            if abs(float(data_split[4])) > 600.0:   # Right yaw acc
                 GUI.warning_time[4] = time.time()
-            if abs(float(data_split[5])) > 0.25:    # Left surge acc
+            if abs(float(data_split[5])) > 0.1:    # Left surge acc
                 GUI.warning_time[5] = time.time()
-            if abs(float(data_split[6])) > 0.25:    # Left rotation acc
+            if abs(float(data_split[6])) > 0.1:    # Left rotation acc
                 GUI.warning_time[6] = time.time()
-            if abs(float(data_split[7])) > 0.25:    # Right surge acc
+            if abs(float(data_split[7])) > 0.1:    # Right surge acc
                 GUI.warning_time[7] = time.time()
-            if abs(float(data_split[8])) > 0.25:    # Right rotation acc
+            if abs(float(data_split[8])) > 0.1:    # Right rotation acc
                 GUI.warning_time[8] = time.time()
-
-
         display_warning(frame)
 
 
@@ -262,7 +258,7 @@ def main():
                 # Write sensor data to file with time since task start in seconds
                 GUI.file.write(str(time.time() - GUI.task_start) + "|" + stuff_string.rstrip() + '\n')
 
-                check_sensor_warnings(frame, stuff_string.rstrip(), 1.0)    # Max force in ring task is 1.0 N
+                check_sensor_warnings(frame, stuff_string.rstrip(), 1.5)    # Max force in ring task is 1.5 N
 
                 #TODO: Note when reading, check number of variables after split to ensure line is proper length
 
@@ -391,13 +387,16 @@ if __name__ == '__main__':
     '''
     red_low = np.array([0, 200, 150])  # [H, S, V]
     red_high = np.array([15, 255, 255])
-    green_low = np.array([25, 100, 50])
+    green_low = np.array([40, 100, 50])
     green_high = np.array([95, 255, 255])
-    blue_low = np.array([75, 65, 70])
-    blue_high = np.array([160, 255, 255])
+    blue_low = np.array([80, 140, 0])
+    blue_high = np.array([110, 255, 255])
 
     # Create an instance of "GUI"
     GUI = GUI(cameraID, font, windowName, displayWidth, displayHeight,
               red_low, red_high, green_low, green_high, blue_low, blue_high)
     # Call to execute main method
-    main()
+    try:
+        main()
+    except:
+        exit(1)

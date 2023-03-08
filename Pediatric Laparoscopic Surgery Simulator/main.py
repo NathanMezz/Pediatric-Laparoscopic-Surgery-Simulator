@@ -43,9 +43,7 @@ class GUI(object):
         self.task_state = 0 # Ring/suturing task states
         self.timer = 0 # timer variable for moving between task states in ring task
 
-        self.warning_time = 0 #timer variable for keeping warning on screen for X seconds
-        self.keep_warning = [False, False, False]   # Keep warning on screen (each index is a different warning)
-
+        self.warning_time = [0, 0, 0, 0, 0, 0, 0, 0, 0] # Timer variable array with an index for each different possible warning
         self.task_start = 0 # Time variable to get start time of a task
 
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.displayWidth)
@@ -77,7 +75,7 @@ class GUI(object):
 
 
 
-        self.startup_counter = 15 # Counter variable for sensor startup countdown at program start
+        self.startup_counter = 16 # Counter variable for sensor startup countdown at program start
 
         cv2.namedWindow(self.windowName)
 
@@ -111,24 +109,61 @@ def main():
             quit_program()
 
     '''
+    Check if a warning should still be displayed, display if for a full second afterwards
+    '''
+    def display_warning(frame):
+        cur_time = time.time()
+
+        if cur_time - GUI.warning_time[0] < 1:
+            cv2.putText(frame, "Too much force!", (500, 700), GUI.font, 1, (0, 0, 255), 2)
+        if cur_time - GUI.warning_time[1] < 1:
+            cv2.putText(frame, "Slow left pitch acc.", (25, 650), GUI.font, 1, (0, 0, 255), 2)
+        if cur_time - GUI.warning_time[2] < 1:
+            cv2.putText(frame, "Slow left yaw acc.", (25, 700), GUI.font, 1, (0, 0, 255), 2)
+        if cur_time - GUI.warning_time[3] < 1:
+            cv2.putText(frame, "Slow right pitch acc.", (925, 650), GUI.font, 1, (0, 0, 255), 2)
+        if cur_time - GUI.warning_time[4] < 1:
+            cv2.putText(frame, "Slow right yaw acc.", (925, 700), GUI.font, 1, (0, 0, 255), 2)
+        if cur_time - GUI.warning_time[5] < 1:
+            cv2.putText(frame, "Slow left surge acc.", (25, 600), GUI.font, 1, (0, 0, 255), 2)
+        if cur_time - GUI.warning_time[6] < 1:
+            cv2.putText(frame, "Slow left rotation acc.", (25, 550), GUI.font, 1, (0, 0, 255), 2)
+        if cur_time - GUI.warning_time[7] < 1:
+            cv2.putText(frame, "Slow right surge acc.", (900, 600), GUI.font, 1, (0, 0, 255), 2)
+        if cur_time - GUI.warning_time[8] < 1:
+            cv2.putText(frame, "Slow right rotation acc.", (900, 550), GUI.font, 1, (0, 0, 255), 2)
+
+    '''
     Check sensor data for any possible bad movements throughout a task
     and add a warning
     '''
-    def check_sensor_warnings(frame, data):
+    def check_sensor_warnings(frame, data, max_force):
         data_split = data.split("|")
-        warning = ""
 
-        if(time.time() - GUI.warning_time > 1):     # Keep last warning on screen for a full second
-            GUI.keep_warning[0] = False
+        if len(data.split("|")) == 9:     # Make sure array of proper length
+            if float(data_split[0]) > max_force:   # If > max_force N of force, add warning (dependent on task)
+                GUI.warning_time[0] = time.time()
+            if abs(float(data_split[1])) > 2000.0:   # Left pitch acc
+                GUI.warning_time[1] = time.time()
+            if abs(float(data_split[2])) > 2000.0:   # Left yaw acc
+                GUI.warning_time[2] = time.time()
+            if abs(float(data_split[3])) > 2000.0:   # Right pitch acc
+                GUI.warning_time[3] = time.time()
+            if abs(float(data_split[4])) > 2000.0:   # Right yaw acc
+                GUI.warning_time[4] = time.time()
+            if abs(float(data_split[5])) > 0.25:    # Left surge acc
+                GUI.warning_time[5] = time.time()
+            if abs(float(data_split[6])) > 0.25:    # Left rotation acc
+                GUI.warning_time[6] = time.time()
+            if abs(float(data_split[7])) > 0.25:    # Right surge acc
+                GUI.warning_time[7] = time.time()
+            if abs(float(data_split[8])) > 0.25:    # Right rotation acc
+                GUI.warning_time[8] = time.time()
 
-        if (len(data.split("|")) == 9):     # Make sure array of proper length
-            if (float(data_split[0]) > 1.0 or GUI.keep_warning[0] == True):    # If > 1.0 N of force, add warning
-                warning += "Too much force! "
-                if(GUI.keep_warning[0] == False): # Get time at first sign of warning
-                    GUI.warning_time = time.time()
-                GUI.keep_warning[0] = True
 
-        cv2.putText(frame, warning, (500, 650), GUI.font, 1, (0, 0, 255), 2)
+        display_warning(frame)
+
+
     '''
     Plays video of most recent task attempt
     '''
@@ -227,7 +262,7 @@ def main():
                 # Write sensor data to file with time since task start in seconds
                 GUI.file.write(str(time.time() - GUI.task_start) + "|" + stuff_string.rstrip() + '\n')
 
-                check_sensor_warnings(frame, stuff_string.rstrip())
+                check_sensor_warnings(frame, stuff_string.rstrip(), 1.0)    # Max force in ring task is 1.0 N
 
                 #TODO: Note when reading, check number of variables after split to ensure line is proper length
 
@@ -326,7 +361,10 @@ def main():
     While running, make required calls to evaluate the current program state
     '''
     while True:
-        evaluate_state()
+        try:
+            evaluate_state()
+        except:
+            exit(1)
         #TODO: add live-feedback checker
 
         # Can press "q" key anytime to quit, no matter GUI state

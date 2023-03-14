@@ -102,6 +102,7 @@ def main():
         try:
             GUI.ser = serial.Serial('COM5', 9600)
         except serial.SerialException:
+            print(serial.SerialException)
             exit(1)
 
     '''
@@ -174,6 +175,7 @@ def main():
             ret,frame = vid.read()
             if ret == True:
                 cv2.imshow(GUI.windowName, frame)
+                #key = cv2.waitKey(int(1000/30))
                 # Press Q on keyboard to exit video at anytime
                 if cv2.waitKey(25) & 0xFF == ord('q'):
                     break
@@ -359,7 +361,8 @@ def main():
     while True:
         try:
             evaluate_state()
-        except:
+        except Exception as e:
+            print(e)
             exit(1)
         #TODO: add live-feedback checker
 
@@ -398,5 +401,6 @@ if __name__ == '__main__':
     # Call to execute main method
     try:
         main()
-    except:
+    except Exception as e:
+        print(e)
         exit(1)

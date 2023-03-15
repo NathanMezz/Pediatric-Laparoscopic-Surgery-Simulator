@@ -67,22 +67,13 @@ y_range = 10    # Default y range
 ax.set_xlim(0, visible_range)
 ax.set_ylim(-y_range, y_range)
 
-
 # Slider positioning
 axcolor = 'lightgoldenrodyellow'
 axpos = plt.axes([0.2, 0.15, 0.65, 0.03], facecolor=axcolor)
 aypos = plt.axes([0.2, 0.1, 0.65, 0.03], facecolor=axcolor)
 
-
-y1 = force
-y2 = L_pitch
-y3 = L_surge
-y4 = R_surge
-y5 = L_roll
-y6 = R_roll
-
 # fig, ax = plt.subplots()
-l1, = ax.plot(time, y1, visible=False, color='blue', label='Force')
+l1, = ax.plot(time, force, visible=False, color='blue', label='Force')
 l2, = ax.plot(time, L_pitch, visible=False, color='red', label='Left Pitch')
 l3, = ax.plot(time, R_pitch, visible=False, color='green', label='Right Pitch')
 l4, = ax.plot(time, L_yaw, visible=False, color='pink', label='Left Yaw')

@@ -13,7 +13,8 @@ import cv2
 import numpy as np
 import time
 import serial
-import sys
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, CheckButtons
 
 '''
 GUI class contains variables for use throughout the program as well as 
@@ -73,9 +74,14 @@ class GUI(object):
         self.ser = None     # Serial var for sensor data input
         self.file = None    # Sensor data file
 
+        # Spike count/time for feedback purposes
+        self.spike_times = [[] for _ in range(9)]   # 2D array --> i,j where i = data index, j = times saved for that data index
+        self.spike_values = [[] for _ in range(9)]  # 2D array to save the data value at spike start for plotting purposes
 
+        # Sensor warning thresholds
+        self.warn_thresholds = [1, 600, 600, 600, 600, 0.1, 0.1, 0.1, 0.1]
 
-        self.startup_counter = 16 # Counter variable for sensor startup countdown at program start
+        self.startup_counter = 16   # Counter variable for sensor startup countdown at program start
 
         cv2.namedWindow(self.windowName)
 
@@ -175,7 +181,7 @@ def main():
             ret,frame = vid.read()
             if ret == True:
                 cv2.imshow(GUI.windowName, frame)
-                #key = cv2.waitKey(int(1000/30))
+                key = cv2.waitKey(int(1000/30))
                 # Press Q on keyboard to exit video at anytime
                 if cv2.waitKey(25) & 0xFF == ord('q'):
                     break
@@ -185,8 +191,165 @@ def main():
         vid.release()
         GUI.image_state = 3 # Go back to feedback page
 
-    #TODO: set detection bounds based off task state
 
+    '''
+    Plots all data read from sensor data txt file
+    Includes sliders to scroll through time, and adjust y-axis scale
+    '''
+    def plot_data():
+        fig, ax = plt.subplots(figsize=(25, 15))
+        plt.subplots_adjust(bottom=0.3)
+
+        file = open("sensor_data.txt", "r")
+        lines = file.readlines()
+
+        time = []
+        force = []
+        L_pitch = []
+        L_yaw = []
+        L_surge = []
+        L_roll = []
+
+        R_pitch = []
+        R_yaw = []
+        R_surge = []
+        R_roll = []
+
+        for line in lines:
+            if (len(line.split("|")) == 10):
+                line = line.strip('\n')  # Remove new line char from end of line
+                vars = line.split("|")  # Split each element of the line into a var split up by | character
+                time.append(vars[0])
+                force.append(vars[1])
+                L_pitch.append(vars[2])
+                L_yaw.append(vars[3])
+                R_pitch.append(vars[4])
+                R_yaw.append(vars[5])
+                R_surge.append(vars[6])
+                R_roll.append(vars[7])
+                L_surge.append(vars[8])
+                L_roll.append(vars[9])
+
+        file.close()
+        # Converts String values in array to numbers
+        time = [f"{float(num):.2f}" for (num) in time]
+        force = [f"{float(num):.2f}" for (num) in force]
+        L_pitch = [f"{float(num):.2f}" for (num) in L_pitch]
+        R_pitch = [f"{float(num):.2f}" for (num) in R_pitch]
+        L_yaw = [f"{float(num):.2f}" for (num) in L_yaw]
+        R_yaw = [f"{float(num):.2f}" for (num) in R_yaw]
+        L_surge = [f"{float(num):.2f}" for (num) in L_surge]
+        R_surge = [f"{float(num):.2f}" for (num) in R_surge]
+        L_roll = [f"{float(num):.2f}" for (num) in L_roll]
+        R_roll = [f"{float(num):.2f}" for (num) in R_roll]
+
+        # Ensures float type 32bit
+        # time = np.array(time) --> Don't need?
+        force = np.array(force, dtype=np.float32)
+        L_pitch = np.array(L_pitch, dtype=np.float32)
+        R_pitch = np.array(R_pitch, dtype=np.float32)
+        L_yaw = np.array(L_yaw, dtype=np.float32)
+        R_yaw = np.array(R_yaw, dtype=np.float32)
+        L_surge = np.array(L_surge, dtype=np.float32)
+        R_surge = np.array(R_surge, dtype=np.float32)
+        L_roll = np.array(L_roll, dtype=np.float32)
+        R_roll = np.array(R_roll, dtype=np.float32)
+
+        # How many x values shown on screen at once
+        visible_range = 15  # Range of x values visible at once
+        y_range = 10  # Default y range
+        ax.set_xlim(0, visible_range)
+        ax.set_ylim(-y_range, y_range)
+
+        # Slider positioning
+        axcolor = 'lightgoldenrodyellow'
+        axpos = plt.axes([0.2, 0.15, 0.65, 0.03], facecolor=axcolor)
+        aypos = plt.axes([0.2, 0.1, 0.65, 0.03], facecolor=axcolor)
+
+        # fig, ax = plt.subplots()
+        l1, = ax.plot(time, force, visible=False, color='blue', label='Force')
+        l2, = ax.plot(time, L_pitch, visible=False, color='red', label='Left Pitch')
+        l3, = ax.plot(time, L_yaw, visible=False, color='green', label='Left Yaw')
+        l4, = ax.plot(time, R_pitch, visible=False, color='pink', label='Right Pitch')
+        l5, = ax.plot(time, R_yaw, visible=False, color='purple', label='Right Yaw')
+        l6, = ax.plot(time, R_surge, visible=False, color='brown', label='Right Surge')
+        l7, = ax.plot(time, R_roll, visible=False, color='orange', label='Right Roll')
+        l8, = ax.plot(time, L_surge, visible=False, color='black', label='Left Surge')
+        l9, = ax.plot(time, L_roll, visible=False, color='silver', label='Left Roll')
+        lines = [l1, l2, l3, l4, l5, l6, l7, l8, l9]
+
+        fig.subplots_adjust(left=0.25)
+        rax = fig.add_axes([0.025, 0.4, 0.1, 0.2])
+
+        labels = [str(line.get_label()) for line in lines]
+        visibility = [line.get_visible() for line in lines]
+        check = CheckButtons(rax, labels, visibility)
+
+        # X-axis Slider(ax, label, valmin, valmax)
+        xpos = Slider(axpos, 'Time', 0, len(time) - visible_range, valinit=0., valstep=0.1)
+        # Y-axis Slider
+        ypos = Slider(aypos, 'Y-Range', 0.1, 1000, valinit=10, valstep=0.1)
+
+        def x_update(val):
+            pos = xpos.val
+            ax.set_xlim(pos, pos + visible_range)
+            fig.canvas.draw_idle()
+
+        def y_update(val):
+            pos = ypos.val
+            ax.set_ylim(-pos, pos)
+            fig.canvas.draw_idle()
+
+        def handle_click(label):
+            index = labels.index(label)
+            lines[index].set_visible(
+                not lines[index].get_visible())  # Set visibility to be opposite of what it was set at
+
+            # Place text at each spike on visible lines
+            for txt in ax.texts:    # Clearing all text first
+                txt.set_visible(False)
+
+            i = 0
+            for li in lines:
+                if li.get_visible():
+                    for j in range(0, len(GUI.spike_times[i])):
+                        ax.text(float(GUI.spike_times[i][j]), float(GUI.spike_values[i][j]), "test",)
+                        print(float(GUI.spike_times[i][j]))
+                i += 1
+            plt.draw()
+
+        check.on_clicked(handle_click)
+        xpos.on_changed(x_update)
+        ypos.on_changed(y_update)
+        plt.show()
+
+
+    '''
+    Counts spikes in data and returns list of times they occur at
+    '''
+    def count_spikes():
+        #count, index = 0, 0
+        high = False
+        file = open("sensor_data.txt", "r")
+        lines = file.readlines()
+        for i in range(0, 9):
+            j = 0
+            for line in lines:
+                if(len(line.split("|")) == 10):
+                    line = line.strip('\n')
+                    vars = line.split("|")
+                    if float(vars[i+1]) > GUI.warn_thresholds[i] and not high:  # i+1 to skip time variable at index 0
+                        high = True
+                        GUI.spike_times[i].append(j) # Save the time index of the spike start
+                        GUI.spike_values[i].append(vars[i+1]) # Save the data value at spike start
+                    elif float(vars[i+1]) < GUI.warn_thresholds[i] and high:
+                        high = False
+                    j += 1
+        file.close()
+        print(GUI.spike_times)
+        print(GUI.spike_times[0])
+        print(GUI.spike_values)
+        print(len(GUI.spike_times[0]))
 
     '''
     Checks which state the interface is currently is, and processes information depending
@@ -260,11 +423,7 @@ def main():
                 # Write sensor data to file with time since task start in seconds
                 GUI.file.write(str(time.time() - GUI.task_start) + "|" + stuff_string.rstrip() + '\n')
 
-                check_sensor_warnings(frame, stuff_string.rstrip(), 1.5)    # Max force in ring task is 1.5 N
-
-                #TODO: Note when reading, check number of variables after split to ensure line is proper length
-
-                #TODO: Process sensor data for warnings, save to file with timestamp...
+                check_sensor_warnings(frame, stuff_string.rstrip(), 1)    # Max force in ring task is 1.5 N
 
                 # Check contour count, if < 2 for 3 seconds, move onto next ring/peg colour
                 if(contour_count < 2 and (time.time() - GUI.timer > 3)):
@@ -282,9 +441,13 @@ def main():
             cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.imshow(GUI.windowName, frame)
 
-        elif GUI.image_state == 3:
+        elif GUI.image_state == 3:  # Feedback page
             cv2.putText(GUI.feedback_menu, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.feedback_menu, "Watch Previous Attempt", (880, 685), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.feedback_menu, "View Graphical Data", (25, 685), GUI.font, 1, (0, 0, 255), 2)
+
+            #Placing data spike counters
+            cv2.putText(GUI.feedback_menu, "Force: " + str(len(GUI.spike_times[0])),(100, 450), GUI.font, 1, (255, 0, 0), 2)
             cv2.imshow(GUI.windowName, GUI.feedback_menu)
         elif GUI.image_state == 0:
             cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (320, 360), GUI.font, 1, (0, 0, 255), 2)
@@ -304,7 +467,6 @@ def main():
                 GUI.image_state = 0
 
 
-
     '''
     Looks for left mouse click anywhere on screen.
     There are different options depending on the which section of the
@@ -318,8 +480,8 @@ def main():
                 # Top left click
                 if y < GUI.displayHeight/2 and x < GUI.displayWidth/2:
                     GUI.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc(*'MJPG'), 30, (GUI.displayWidth, GUI.displayHeight))
-                    GUI.image_state = 1     # Ring Task
                     GUI.task_state = 1
+                    GUI.image_state = 1    # Ring Task
                     GUI.ser.flushInput()
                     GUI.timer = time.time()
                     GUI.task_start = time.time()
@@ -332,6 +494,7 @@ def main():
                     GUI.image_state = -1    # Quit
                 # Bottom right click
                 elif y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
+                    count_spikes()
                     GUI.image_state = 3     # Feedback page
             # Ring Task options
             elif GUI.image_state == 1:
@@ -348,13 +511,14 @@ def main():
                     play_video("outpy.avi")
                 elif y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:  # Top Right click
                     GUI.image_state = 0  # Back to main menu
+                elif y > GUI.displayHeight / 2 and x < GUI.displayWidth / 2:    # Bottom left click
+                    plot_data()
 
     # Calls mouse_event function if mouse is clicked on the open window
     cv2.setMouseCallback(GUI.windowName, mouse_event)
     # Initial sensor startup
     start_sensors()
 
-    print("Starting Sensors, please wait at least 16 seconds")
     '''
     While running, make required calls to evaluate the current program state
     '''
@@ -364,7 +528,6 @@ def main():
         except Exception as e:
             print(e)
             exit(1)
-        #TODO: add live-feedback checker
 
         # Can press "q" key anytime to quit, no matter GUI state
         key = cv2.waitKey(1)

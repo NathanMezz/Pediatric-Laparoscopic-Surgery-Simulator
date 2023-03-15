@@ -121,6 +121,7 @@ void loop() {
     float R_pitchVel = 0;
     float R_pitchAcc = 0;
 
+
   /* mpu6050_1.update();
     L_pitch = mpu6050_1.getAngleX();
     L_yaw = mpu6050_1.getAngleY();
@@ -172,12 +173,17 @@ void loop() {
 
     if (data1.isMotion || data1.isOnSurface) {
       L_PMW_X=((data1.dx)) + L_PMW_X; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
-      L_PMW_Y=((data1.dy)) + L_PMW_Y;  
+
+      
+      L_PMW_Y=((data1.dy)) + L_PMW_Y;  //Can measure 10cm on ruler and use that bit value to convert
+
     }
     if (data2.isMotion || data2.isOnSurface) {
       R_PMW_X=((data2.dx)) + R_PMW_X; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
       R_PMW_Y=((data2.dy)) + R_PMW_Y;
     }
+
+    
 
     //Left PMW velocities
     if (prev_L_PMW_X != 0) {
@@ -228,10 +234,11 @@ void loop() {
   
       //Serial.println(String(R_pitch) + " " + String(R_pitchAcc) + "   " + String(R_yawAcc));
 
-      Serial.print(String(force) + "|" + String(L_pitchAcc) + "|" + String(L_yawAcc) + "|" + String(R_pitchAcc) + "|" + String(R_yawAcc) + "|" + String(L_PMW_X_acc) + "|"
-        + String(L_PMW_Y_acc) + "|" + String(R_PMW_X_acc) + "|" + String(R_PMW_Y_acc) + '\n');
-    
+     // Serial.print(String(force) + "|" + String(L_pitchAcc) + "|" + String(L_yawAcc) + "|" + String(R_pitchAcc) + "|" + String(R_yawAcc) + "|" + String(L_PMW_Y_acc) + "|"
+      //  + String(L_PMW_X_acc) + "|" + String(R_PMW_Y_acc) + "|" + String(R_PMW_X_acc) + '\n');
+      
 
+      Serial.println(String(L_PMW_X) + " " + String(L_PMW_Y));
     //Save previous values
       prevTimeSinceStart = timeSinceStart;
       prev_L_yaw = L_yaw;

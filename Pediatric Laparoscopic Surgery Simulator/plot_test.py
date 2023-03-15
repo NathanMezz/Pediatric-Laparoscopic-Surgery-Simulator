@@ -2,8 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons, CheckButtons
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize = (25,15))
 plt.subplots_adjust(bottom=0.3)
+
+
 
 file = open("sensor_data.txt", "r")
 lines = file.readlines()
@@ -40,7 +42,7 @@ file.close()
 time = [f"{float(num):.2f}" for (num) in time]
 force = [f"{float(num):.2f}" for (num) in force]
 L_pitch = [f"{float(num):.2f}" for (num) in L_pitch]
-R_pitch = [f"{float(num):.2f}" for (num) in L_pitch]
+R_pitch = [f"{float(num):.2f}" for (num) in R_pitch]
 L_yaw = [f"{float(num):.2f}" for (num) in L_yaw]
 R_yaw = [f"{float(num):.2f}" for (num) in R_yaw]
 L_surge = [f"{float(num):.2f}" for (num) in L_surge]
@@ -67,6 +69,7 @@ y_range = 10    # Default y range
 ax.set_xlim(0, visible_range)
 ax.set_ylim(-y_range, y_range)
 
+
 # Slider positioning
 axcolor = 'lightgoldenrodyellow'
 axpos = plt.axes([0.2, 0.15, 0.65, 0.03], facecolor=axcolor)
@@ -79,9 +82,9 @@ l3, = ax.plot(time, R_pitch, visible=False, color='green', label='Right Pitch')
 l4, = ax.plot(time, L_yaw, visible=False, color='pink', label='Left Yaw')
 l5, = ax.plot(time, R_yaw, visible=False, color='purple', label='Right Yaw')
 l6, = ax.plot(time, L_surge, visible=False, color='brown', label='Left Surge')
-l7, = ax.plot(time, R_surge, visible=False, color='brown', label='Right Surge')
-l8, = ax.plot(time, L_roll, visible=False, color='brown', label='Left Roll')
-l9, = ax.plot(time, R_surge, visible=False, color='brown', label='Right Roll')
+l7, = ax.plot(time, R_surge, visible=False, color='orange', label='Right Surge')
+l8, = ax.plot(time, L_roll, visible=False, color='black', label='Left Roll')
+l9, = ax.plot(time, R_roll, visible=False, color='silver', label='Right Roll')
 lines = [l1, l2, l3, l4, l5, l6, l7, l8, l9]
 
 fig.subplots_adjust(left=0.25)
@@ -118,7 +121,6 @@ def handle_click(label):
 
 
 check.on_clicked(handle_click)
-
 xpos.on_changed(x_update)
 ypos.on_changed(y_update)
 plt.show()

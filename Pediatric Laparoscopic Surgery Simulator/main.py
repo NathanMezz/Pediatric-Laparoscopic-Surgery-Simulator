@@ -79,7 +79,12 @@ class GUI(object):
         self.spike_values = [[] for _ in range(9)]  # 2D array to save the data value at spike start for plotting purposes
 
         # Sensor warning thresholds
-        self.warn_thresholds = [1, 600, 600, 600, 600, 0.1, 0.1, 0.1, 0.1]
+        '''
+        From Left to Right:
+        Force, L_pitchAcc, L_yawAcc, R_pitchAcc, R_yawAcc, L_PMW_Y_acc,
+        L_PMW_X_acc, R_PMW_Y_acc, R_PMW_X_acc
+        '''
+        self.warn_thresholds = [1, 1, 1, 1, 1, 0.5, 0.1, 0.5, 0.1]
 
         self.startup_counter = 16   # Counter variable for sensor startup countdown at program start
 
@@ -108,6 +113,7 @@ def main():
         try:
             GUI.ser = serial.Serial('COM5', 9600)
         except serial.SerialException:
+            GUI.ser.close()
             print(serial.SerialException)
             exit(1)
 
@@ -148,21 +154,21 @@ def main():
         if len(data.split("|")) == 9:     # Make sure array of proper length
             if float(data_split[0]) > max_force:   # If > max_force N of force, add warning (dependent on task)
                 GUI.warning_time[0] = time.time()
-            if abs(float(data_split[1])) > 600.0:   # Left pitch acc
+            if abs(float(data_split[1])) > GUI.warn_thresholds[1]:   # Left pitch acc
                 GUI.warning_time[1] = time.time()
-            if abs(float(data_split[2])) > 600.0:   # Left yaw acc
+            if abs(float(data_split[2])) > GUI.warn_thresholds[2]:   # Left yaw acc
                 GUI.warning_time[2] = time.time()
-            if abs(float(data_split[3])) > 600.0:   # Right pitch acc
+            if abs(float(data_split[3])) > GUI.warn_thresholds[3]:   # Right pitch acc
                 GUI.warning_time[3] = time.time()
-            if abs(float(data_split[4])) > 600.0:   # Right yaw acc
+            if abs(float(data_split[4])) > GUI.warn_thresholds[4]:   # Right yaw acc
                 GUI.warning_time[4] = time.time()
-            if abs(float(data_split[5])) > 0.1:    # Left surge acc
+            if abs(float(data_split[5])) > GUI.warn_thresholds[5]:    # Left surge acc
                 GUI.warning_time[5] = time.time()
-            if abs(float(data_split[6])) > 0.1:    # Left rotation acc
+            if abs(float(data_split[6])) > GUI.warn_thresholds[6]:    # Left rotation acc
                 GUI.warning_time[6] = time.time()
-            if abs(float(data_split[7])) > 0.1:    # Right surge acc
+            if abs(float(data_split[7])) > GUI.warn_thresholds[7]:    # Right surge acc
                 GUI.warning_time[7] = time.time()
-            if abs(float(data_split[8])) > 0.1:    # Right rotation acc
+            if abs(float(data_split[8])) > GUI.warn_thresholds[8]:    # Right rotation acc
                 GUI.warning_time[8] = time.time()
         display_warning(frame)
 
@@ -225,10 +231,10 @@ def main():
                 L_yaw.append(vars[3])
                 R_pitch.append(vars[4])
                 R_yaw.append(vars[5])
-                R_surge.append(vars[6])
-                R_roll.append(vars[7])
-                L_surge.append(vars[8])
-                L_roll.append(vars[9])
+                L_surge.append(vars[6])
+                L_roll.append(vars[7])
+                R_surge.append(vars[8])
+                R_roll.append(vars[9])
 
         file.close()
         # Converts String values in array to numbers
@@ -255,9 +261,10 @@ def main():
         L_roll = np.array(L_roll, dtype=np.float32)
         R_roll = np.array(R_roll, dtype=np.float32)
 
+
         # How many x values shown on screen at once
         visible_range = 15  # Range of x values visible at once
-        y_range = 10  # Default y range
+        y_range = 5  # Default y range
         ax.set_xlim(0, visible_range)
         ax.set_ylim(-y_range, y_range)
 
@@ -267,8 +274,8 @@ def main():
         aypos = plt.axes([0.2, 0.1, 0.65, 0.03], facecolor=axcolor)
 
         # fig, ax = plt.subplots()
-        l1, = ax.plot(time, force, visible=False, color='blue', label='Force')
-        l2, = ax.plot(time, L_pitch, visible=False, color='red', label='Left Pitch')
+        l1, = ax.plot(time, force, visible=False, color='blue', label='Force (N)')
+        l2, = ax.plot(time, L_pitch, visible=False, color='red', label='Left Pitch (M/S^2)')
         l3, = ax.plot(time, L_yaw, visible=False, color='green', label='Left Yaw')
         l4, = ax.plot(time, R_pitch, visible=False, color='pink', label='Right Pitch')
         l5, = ax.plot(time, R_yaw, visible=False, color='purple', label='Right Yaw')
@@ -287,8 +294,10 @@ def main():
 
         # X-axis Slider(ax, label, valmin, valmax)
         xpos = Slider(axpos, 'Time', 0, len(time) - visible_range, valinit=0., valstep=0.1)
+        xpos.valtext.set_visible(False)
         # Y-axis Slider
-        ypos = Slider(aypos, 'Y-Range', 0.1, 1000, valinit=10, valstep=0.1)
+        ypos = Slider(aypos, 'Y-Range', 0.1, 25, valinit=10, valstep=0.1)
+        ypos.valtext.set_visible(False)
 
         def x_update(val):
             pos = xpos.val
@@ -313,7 +322,7 @@ def main():
             for li in lines:
                 if li.get_visible():
                     for j in range(0, len(GUI.spike_times[i])):
-                        ax.text(float(GUI.spike_times[i][j]), float(GUI.spike_values[i][j]), "test",)
+                        ax.text(float(GUI.spike_times[i][j]), float(GUI.spike_values[i][j]), "!!!",)
                         print(float(GUI.spike_times[i][j]))
                 i += 1
             plt.draw()
@@ -346,10 +355,6 @@ def main():
                         high = False
                     j += 1
         file.close()
-        print(GUI.spike_times)
-        print(GUI.spike_times[0])
-        print(GUI.spike_values)
-        print(len(GUI.spike_times[0]))
 
     '''
     Checks which state the interface is currently is, and processes information depending
@@ -410,7 +415,7 @@ def main():
                 for cnt in contours:
                     area = cv2.contourArea(cnt)
                     # Only detect countours of this size range, may need changing if camera view of task differs
-                    if area > 150 and area < 6250:
+                    if area > 150 and area < 7000:
                         contour_count += 1
                         (x, y, w, h) = cv2.boundingRect(cnt)
                         cv2.rectangle(frame, (x - 20, y - 20), (x + 20 + w, y + 20 + h), (255, 0, 0), 2)
@@ -423,7 +428,7 @@ def main():
                 # Write sensor data to file with time since task start in seconds
                 GUI.file.write(str(time.time() - GUI.task_start) + "|" + stuff_string.rstrip() + '\n')
 
-                check_sensor_warnings(frame, stuff_string.rstrip(), 1)    # Max force in ring task is 1.5 N
+                check_sensor_warnings(frame, stuff_string.rstrip(), GUI.warn_thresholds[0])    # Max force in ring task is 1 N
 
                 # Check contour count, if < 2 for 3 seconds, move onto next ring/peg colour
                 if(contour_count < 2 and (time.time() - GUI.timer > 3)):
@@ -442,12 +447,25 @@ def main():
             cv2.imshow(GUI.windowName, frame)
 
         elif GUI.image_state == 3:  # Feedback page
+            GUI.feedback_menu = np.zeros([GUI.displayHeight, GUI.displayWidth, 3], np.uint8)
             cv2.putText(GUI.feedback_menu, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.feedback_menu, "Watch Previous Attempt", (880, 685), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.feedback_menu, "View Graphical Data", (25, 685), GUI.font, 1, (0, 0, 255), 2)
 
             #Placing data spike counters
-            cv2.putText(GUI.feedback_menu, "Force: " + str(len(GUI.spike_times[0])),(100, 450), GUI.font, 1, (255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Thresholds crossed", (25, 35), GUI.font, 1, (255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Force: " + str(len(GUI.spike_times[0])),(25,80), GUI.font, 1, (255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Left pitch acc: " + str(len(GUI.spike_times[1])), (25, 125), GUI.font, 1, (255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Left yaw acc: " + str(len(GUI.spike_times[2])), (25, 170), GUI.font, 1, (255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Right pitch acc: " + str(len(GUI.spike_times[3])), (25, 215), GUI.font, 1, (255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Right yaw acc: " + str(len(GUI.spike_times[4])), (25, 260), GUI.font, 1, (255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Left surge acc: " + str(len(GUI.spike_times[5])), (25, 305), GUI.font, 1,(255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Left roll acc: " + str(len(GUI.spike_times[6])), (25, 350), GUI.font, 1,(255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Right surge acc: " + str(len(GUI.spike_times[7])), (25, 395), GUI.font, 1,(255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Right roll acc: " + str(len(GUI.spike_times[8])), (25, 440), GUI.font, 1,(255, 0, 0), 2)
+
+
+
             cv2.imshow(GUI.windowName, GUI.feedback_menu)
         elif GUI.image_state == 0:
             cv2.putText(GUI.main_menu, "Pediatric Laparoscopic Training Simulator", (320, 360), GUI.font, 1, (0, 0, 255), 2)
@@ -555,8 +573,8 @@ if __name__ == '__main__':
     red_high = np.array([15, 255, 255])
     green_low = np.array([40, 100, 50])
     green_high = np.array([95, 255, 255])
-    blue_low = np.array([80, 140, 0])
-    blue_high = np.array([110, 255, 255])
+    blue_low = np.array([70, 120, 0])
+    blue_high = np.array([125, 255, 255])
 
     # Create an instance of "GUI"
     GUI = GUI(cameraID, font, windowName, displayWidth, displayHeight,

@@ -107,17 +107,17 @@ void loop() {
   
     unsigned long timeSinceStart = millis();
     //MPU gets data from updates
-    float L_yaw = mpu6050_1.getAngleY();
+    float L_yaw = mpu6050_2.getAngleY();
     float L_yawVel = 0;
     float L_yawAcc = 0;
-    float L_pitch = mpu6050_1.getAngleX();
+    float L_pitch = mpu6050_2.getAngleX();
     float L_pitchVel = 0;
     float L_pitchAcc = 0;
 
-    float R_yaw = mpu6050_2.getAngleY();
+    float R_yaw = mpu6050_1.getAngleY();
     float R_yawVel = 0;
     float R_yawAcc = 0;
-    float R_pitch = mpu6050_2.getAngleX();
+    float R_pitch = mpu6050_1.getAngleX();
     float R_pitchVel = 0;
     float R_pitchAcc = 0;
 
@@ -168,8 +168,8 @@ void loop() {
     R_accY = mpu6050_2.getAccY();*/
 
     //Get data from PMW3389 sensors via readburst
-    PMW3389_DATA data1 = sensor1.readBurst();
-    PMW3389_DATA data2 = sensor2.readBurst(); 
+    PMW3389_DATA data1 = sensor2.readBurst();
+    PMW3389_DATA data2 = sensor1.readBurst(); 
 
     if (data1.isMotion || data1.isOnSurface) {
       L_PMW_X=((data1.dx)) + L_PMW_X; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
@@ -234,11 +234,12 @@ void loop() {
   
       //Serial.println(String(R_pitch) + " " + String(R_pitchAcc) + "   " + String(R_yawAcc));
 
-     // Serial.print(String(force) + "|" + String(L_pitchAcc) + "|" + String(L_yawAcc) + "|" + String(R_pitchAcc) + "|" + String(R_yawAcc) + "|" + String(L_PMW_Y_acc) + "|"
-      //  + String(L_PMW_X_acc) + "|" + String(R_PMW_Y_acc) + "|" + String(R_PMW_X_acc) + '\n');
+      // Division by 1000.00 to convert pitch and yaw to m/s^2 from mm/s^2
+      Serial.print(String(force) + "|" + String(L_pitchAcc/1000.00) + "|" + String(L_yawAcc/1000.00) + "|" + String(R_pitchAcc/1000.00) + "|" + String(R_yawAcc/1000.00) + "|" + String(L_PMW_Y_acc) + "|"
+        + String(L_PMW_X_acc) + "|" + String(R_PMW_Y_acc) + "|" + String(R_PMW_X_acc) + '\n');
       
 
-      Serial.println(String(L_PMW_X) + " " + String(L_PMW_Y));
+      //Serial.println(String(((L_PMW_X * 180.00)/ (3.14 * 1.5))/16000) + " " + String(L_PMW_Y));
     //Save previous values
       prevTimeSinceStart = timeSinceStart;
       prev_L_yaw = L_yaw;

@@ -52,6 +52,8 @@ R_surge = [f"{float(num):.2f}" for (num) in R_surge]
 L_roll = [f"{float(num):.2f}" for (num) in L_roll]
 R_roll = [f"{float(num):.2f}" for (num) in R_roll]
 
+
+
 # Ensures float type 32bit
 # time = np.array(time) --> Don't need?
 force = np.array(force, dtype=np.float32)
@@ -64,6 +66,9 @@ R_surge = np.array(R_surge, dtype=np.float32)
 L_roll = np.array(L_roll, dtype=np.float32)
 R_roll = np.array(R_roll, dtype=np.float32)
 
+print(L_pitch)
+L_pitch = [num/1000.00 for num in L_pitch]
+print(L_pitch)
 # How many x values shown on screen at once
 visible_range = 15  # Range of x values visible at once
 y_range = 10  # Default y range
@@ -77,7 +82,7 @@ aypos = plt.axes([0.2, 0.1, 0.65, 0.03], facecolor=axcolor)
 
 # fig, ax = plt.subplots()
 l1, = ax.plot(time, force, visible=False, color='blue', label='Force')
-l2, = ax.plot(time, L_pitch, visible=False, color='red', label='Left Pitch')
+l2, = ax.plot(time, L_pitch, visible=False, color='red', label='Left Pitch (M/S^2)')
 l3, = ax.plot(time, L_yaw, visible=False, color='green', label='Left Yaw')
 l4, = ax.plot(time, R_pitch, visible=False, color='pink', label='Right Pitch')
 l5, = ax.plot(time, R_yaw, visible=False, color='purple', label='Right Yaw')
@@ -98,8 +103,10 @@ check = CheckButtons(rax, labels, visibility)
 
 # X-axis Slider(ax, label, valmin, valmax)
 xpos = Slider(axpos, 'Time', 0, len(time)-visible_range, valinit=0., valstep=0.1)
+xpos.valtext.set_visible(False)
 # Y-axis Slider
-ypos = Slider(aypos, 'Y-Range', 0.1, 100, valinit=10, valstep=0.1)
+ypos = Slider(aypos, 'Y-Range', 0.1, 25, valinit=10, valstep=0.1)
+ypos.valtext.set_visible(False)
 
 
 '''

@@ -239,7 +239,6 @@ void loop() {
         + String(L_PMW_X_acc) + "|" + String(R_PMW_Y_acc) + "|" + String(R_PMW_X_acc) + '\n');
       
 
-      //Serial.println(String(((L_PMW_X * 180.00)/ (3.14 * 1.5))/16000) + " " + String(L_PMW_Y));
     //Save previous values
       prevTimeSinceStart = timeSinceStart;
       prev_L_yaw = L_yaw;

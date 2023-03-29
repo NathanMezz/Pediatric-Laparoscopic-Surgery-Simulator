@@ -8,6 +8,7 @@ Author: Nathan Mezzomo
 Date Created: November 2, 2022
 Last Edited: February 8, 2023
 '''
+import os
 
 import cv2
 import numpy as np
@@ -275,7 +276,7 @@ def main():
 
         # fig, ax = plt.subplots()
         l1, = ax.plot(time, force, visible=False, color='blue', label='Force (N)')
-        l2, = ax.plot(time, L_pitch, visible=False, color='red', label='Left Pitch (M/S^2)')
+        l2, = ax.plot(time, L_pitch, visible=False, color='red', label='Left Pitch')
         l3, = ax.plot(time, L_yaw, visible=False, color='green', label='Left Yaw')
         l4, = ax.plot(time, R_pitch, visible=False, color='pink', label='Right Pitch')
         l5, = ax.plot(time, R_yaw, visible=False, color='purple', label='Right Yaw')
@@ -333,10 +334,33 @@ def main():
         plt.show()
 
 
+
+    '''
+    Save the times of each warning to a text file
+    '''
+    def save_spike_times(file, index):
+
+        times = open("sensor_data.txt", "r")
+        time_arr = []
+        for line in times:
+            line = line.strip('\n')
+            vars = line.split("|")
+            time_arr.append(vars[0])
+
+        time_arr = [f"{float(num):.2f}" for (num) in time_arr]
+        for j in range(0, len(GUI.spike_times[index])):
+            time_index = GUI.spike_times[index][j]
+            file.write(str(time_arr[time_index]) + '\n')
+
+        times.close()
+
     '''
     Counts spikes in data and returns list of times they occur at
     '''
     def count_spikes():
+        # Clearing any left-over values
+        GUI.spike_times = [[] for _ in range(9)]
+        GUI.spike_values = [[] for _ in range(9)]
         #count, index = 0, 0
         high = False
         file = open("sensor_data.txt", "r")
@@ -355,6 +379,33 @@ def main():
                         high = False
                     j += 1
         file.close()
+
+        # Print the times into another text file so a user can see the list of times
+
+        file = open("Warning_list.txt", "w")
+        file.write("Warning Type and times (seconds): \n")
+        file.write("Force: \n")
+        save_spike_times(file, 0)
+        file.write("Left Pitch Acceleration: \n")
+        save_spike_times(file, 1)
+        file.write("Left Yaw Acceleration: \n")
+        save_spike_times(file, 2)
+        file.write("Right Pitch Acceleration: \n")
+        save_spike_times(file, 3)
+        file.write("Right Yaw Acceleration: \n")
+        save_spike_times(file, 4)
+        file.write("Left Surge Acceleration: \n")
+        save_spike_times(file, 5)
+        file.write("Left Roll Acceleration: \n")
+        save_spike_times(file, 6)
+        file.write("Right Surge Acceleration: \n")
+        save_spike_times(file, 7)
+        file.write("Right Roll Acceleration: \n")
+        save_spike_times(file, 8)
+
+        file.close()
+
+
 
     '''
     Checks which state the interface is currently is, and processes information depending
@@ -383,7 +434,6 @@ def main():
 
             # Only write/show a frame if there was a new capture
             if ret == True:
-                # cv2.putText(frame, "Date: " + str(datetime.datetime.now()),(500, 500), GUI.font, 1, (0, 0, 255), 2)
                 frameHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
                 lower_bound = None
                 upper_bound = None
@@ -400,9 +450,9 @@ def main():
                     upper_bound = GUI.blue_high
                 else:
                     lower_bound = np.array([255, 255, 255])
-                    upper_bound = np.array([255, 255, 255])     #TODO: Are these needed here?
-                    GUI.image_state = 0
+                    upper_bound = np.array([255, 255, 255])
                     GUI.file.close()
+                    GUI.image_state = 0
                     return
 
                 myMask = cv2.inRange(frameHSV, lower_bound, upper_bound)
@@ -420,15 +470,14 @@ def main():
                         (x, y, w, h) = cv2.boundingRect(cnt)
                         cv2.rectangle(frame, (x - 20, y - 20), (x + 20 + w, y + 20 + h), (255, 0, 0), 2)
 
-                # if contour count < 2 for 3 seconds, move onto next task state
+                # Read sensor data
                 stuff = GUI.ser.readline()
                 stuff_string = stuff.decode()
 
-                # print(stuff_string.rstrip()) # Printing sensor data to console for testing
                 # Write sensor data to file with time since task start in seconds
                 GUI.file.write(str(time.time() - GUI.task_start) + "|" + stuff_string.rstrip() + '\n')
 
-                check_sensor_warnings(frame, stuff_string.rstrip(), GUI.warn_thresholds[0])    # Max force in ring task is 1 N
+                check_sensor_warnings(frame, stuff_string.rstrip(), GUI.warn_thresholds[0]) # Sending force threshold here incase we want to change depending on task
 
                 # Check contour count, if < 2 for 3 seconds, move onto next ring/peg colour
                 if(contour_count < 2 and (time.time() - GUI.timer > 3)):
@@ -437,6 +486,8 @@ def main():
                 elif(contour_count > 1):
                     GUI.timer = time.time() # reset timer
 
+
+                cv2.putText(frame, str(round(time.time() - GUI.task_start, 2)), (600, 35), GUI.font, 1, (0, 0, 255), 2)
                 GUI.out.write(frame)
                 cv2.imshow(GUI.windowName, frame)
 
@@ -444,6 +495,17 @@ def main():
             ret, frame = GUI.cap.read()
             cv2.putText(frame, "Suturing Task", (25, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(frame, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
+
+            # Read sensor data
+            stuff = GUI.ser.readline()
+            stuff_string = stuff.decode()
+
+            # Write sensor data to file with time since task start in seconds
+            GUI.file.write(str(time.time() - GUI.task_start) + "|" + stuff_string.rstrip() + '\n')
+
+            check_sensor_warnings(frame, stuff_string.rstrip(), GUI.warn_thresholds[0]) # Sending force threshold here incase we want to change depending on task
+
+            GUI.out.write(frame)
             cv2.imshow(GUI.windowName, frame)
 
         elif GUI.image_state == 3:  # Feedback page
@@ -451,18 +513,19 @@ def main():
             cv2.putText(GUI.feedback_menu, "Main Menu", (1100, 35), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.feedback_menu, "Watch Previous Attempt", (880, 685), GUI.font, 1, (0, 0, 255), 2)
             cv2.putText(GUI.feedback_menu, "View Graphical Data", (25, 685), GUI.font, 1, (0, 0, 255), 2)
+            cv2.putText(GUI.feedback_menu, "View Times of Warnings", (25, 35), GUI.font, 1, (0, 0, 255), 2)
 
             #Placing data spike counters
-            cv2.putText(GUI.feedback_menu, "Thresholds crossed", (25, 35), GUI.font, 1, (255, 0, 0), 2)
-            cv2.putText(GUI.feedback_menu, "Force: " + str(len(GUI.spike_times[0])),(25,80), GUI.font, 1, (255, 0, 0), 2)
-            cv2.putText(GUI.feedback_menu, "Left pitch acc: " + str(len(GUI.spike_times[1])), (25, 125), GUI.font, 1, (255, 0, 0), 2)
-            cv2.putText(GUI.feedback_menu, "Left yaw acc: " + str(len(GUI.spike_times[2])), (25, 170), GUI.font, 1, (255, 0, 0), 2)
-            cv2.putText(GUI.feedback_menu, "Right pitch acc: " + str(len(GUI.spike_times[3])), (25, 215), GUI.font, 1, (255, 0, 0), 2)
-            cv2.putText(GUI.feedback_menu, "Right yaw acc: " + str(len(GUI.spike_times[4])), (25, 260), GUI.font, 1, (255, 0, 0), 2)
-            cv2.putText(GUI.feedback_menu, "Left surge acc: " + str(len(GUI.spike_times[5])), (25, 305), GUI.font, 1,(255, 0, 0), 2)
-            cv2.putText(GUI.feedback_menu, "Left roll acc: " + str(len(GUI.spike_times[6])), (25, 350), GUI.font, 1,(255, 0, 0), 2)
-            cv2.putText(GUI.feedback_menu, "Right surge acc: " + str(len(GUI.spike_times[7])), (25, 395), GUI.font, 1,(255, 0, 0), 2)
-            cv2.putText(GUI.feedback_menu, "Right roll acc: " + str(len(GUI.spike_times[8])), (25, 440), GUI.font, 1,(255, 0, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Thresholds crossed", (25, 125), GUI.font, 1, (0, 255, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Force: " + str(len(GUI.spike_times[0])),(25,170), GUI.font, 1, (0, 255, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Left pitch acc: " + str(len(GUI.spike_times[1])), (25, 215), GUI.font, 1, (0, 255, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Left yaw acc: " + str(len(GUI.spike_times[2])), (25, 260), GUI.font, 1, (0, 255, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Right pitch acc: " + str(len(GUI.spike_times[3])), (25, 305), GUI.font, 1, (0, 255, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Right yaw acc: " + str(len(GUI.spike_times[4])), (25, 350), GUI.font, 1, (0, 255, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Left surge acc: " + str(len(GUI.spike_times[5])), (25, 395), GUI.font, 1,(0, 255, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Left roll acc: " + str(len(GUI.spike_times[6])), (25, 440), GUI.font, 1,(0, 255, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Right surge acc: " + str(len(GUI.spike_times[7])), (25, 485), GUI.font, 1,(0, 255, 0), 2)
+            cv2.putText(GUI.feedback_menu, "Right roll acc: " + str(len(GUI.spike_times[8])), (25, 530), GUI.font, 1,(0, 255, 0), 2)
 
 
 
@@ -506,7 +569,11 @@ def main():
                     GUI.file = open("sensor_data.txt", "w")
                 # Top right click
                 elif y < GUI.displayHeight/2 and x > GUI.displayWidth/2:
+                    GUI.out = cv2.VideoWriter('outpy.avi', cv2.VideoWriter_fourcc(*'MJPG'), 30, (GUI.displayWidth, GUI.displayHeight))
                     GUI.image_state = 2     # Suturing Task
+                    GUI.task_start = time.time()
+                    GUI.ser.flushInput()
+                    GUI.file = open("sensor_data.txt", "w")
                 # Bottom left click
                 elif y > GUI.displayHeight/2 and x < GUI.displayWidth/2:
                     GUI.image_state = -1    # Quit
@@ -517,16 +584,19 @@ def main():
             # Ring Task options
             elif GUI.image_state == 1:
                 if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:  # Top Right click
-                    GUI.image_state = 0  # Back to main menu
                     GUI.file.close()
+                    GUI.image_state = 0  # Back to main menu
             # Suturing Task options
             elif GUI.image_state == 2:
                 if y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:  # Top Right click
+                    GUI.file.close()
                     GUI.image_state = 0  # Back to main menu
             # Feedback page options
             elif GUI.image_state == 3:
                 if y > GUI.displayHeight/2 and x > GUI.displayWidth/2:
                     play_video("outpy.avi")
+                elif y < GUI.displayHeight / 2 and x < GUI.displayWidth / 2:  #Top left click
+                    os.startfile("Warning_list.txt")
                 elif y < GUI.displayHeight / 2 and x > GUI.displayWidth / 2:  # Top Right click
                     GUI.image_state = 0  # Back to main menu
                 elif y > GUI.displayHeight / 2 and x < GUI.displayWidth / 2:    # Bottom left click
@@ -569,12 +639,12 @@ if __name__ == '__main__':
     HSV Ranges
     Use HSV.py to find appropriate values if recalibration required
     '''
-    red_low = np.array([0, 200, 150])  # [H, S, V]
+    red_low = np.array([0, 100, 150])  # [H, S, V]
     red_high = np.array([15, 255, 255])
-    green_low = np.array([40, 100, 50])
+    green_low = np.array([30, 100, 50])
     green_high = np.array([95, 255, 255])
-    blue_low = np.array([70, 120, 0])
-    blue_high = np.array([125, 255, 255])
+    blue_low = np.array([75, 135, 0])
+    blue_high = np.array([115, 255, 255])
 
     # Create an instance of "GUI"
     GUI = GUI(cameraID, font, windowName, displayWidth, displayHeight,

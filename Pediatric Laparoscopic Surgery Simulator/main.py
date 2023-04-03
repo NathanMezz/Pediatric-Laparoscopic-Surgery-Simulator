@@ -416,7 +416,7 @@ def main():
     1 - Ring Task
     2 - Suturing Task
     3 - Feedback
-    4 - not used yet
+    4 - not used
     5 - Sensor startup page (Initial startup screen to wait for sensor startup)
     '''
     def evaluate_state():

@@ -486,7 +486,7 @@ def main():
                 elif(contour_count > 1):
                     GUI.timer = time.time() # reset timer
 
-
+                #Place a timer on screen for task duration
                 cv2.putText(frame, str(round(time.time() - GUI.task_start, 2)), (600, 35), GUI.font, 1, (0, 0, 255), 2)
                 GUI.out.write(frame)
                 cv2.imshow(GUI.windowName, frame)
@@ -505,6 +505,8 @@ def main():
 
             check_sensor_warnings(frame, stuff_string.rstrip(), GUI.warn_thresholds[0]) # Sending force threshold here incase we want to change depending on task
 
+            # Place a timer on screen for task duration
+            cv2.putText(frame, str(round(time.time() - GUI.task_start, 2)), (600, 35), GUI.font, 1, (0, 0, 255), 2)
             GUI.out.write(frame)
             cv2.imshow(GUI.windowName, frame)
 

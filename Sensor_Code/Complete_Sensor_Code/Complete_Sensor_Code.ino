@@ -234,7 +234,7 @@ void loop() {
   
       //Serial.println(String(R_pitch) + " " + String(R_pitchAcc) + "   " + String(R_yawAcc));
 
-      // Division by 1000.00 to convert pitch and yaw to m/s^2 from mm/s^2
+      // Division by 1000.00 to convert pitch and yaw to smaller digit value
       Serial.print(String(force) + "|" + String(L_pitchAcc/1000.00) + "|" + String(L_yawAcc/1000.00) + "|" + String(R_pitchAcc/1000.00) + "|" + String(R_yawAcc/1000.00) + "|" + String(L_PMW_Y_acc) + "|"
         + String(L_PMW_X_acc) + "|" + String(R_PMW_Y_acc) + "|" + String(R_PMW_X_acc) + '\n');
       

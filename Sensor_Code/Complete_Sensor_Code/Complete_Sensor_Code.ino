@@ -42,10 +42,18 @@ float R_yaw = 0;
 
 
 float L_PMW_X = 0;
+float L_PMW_X_vel = 0;
+float L_PMW_X_acc = 0;
 float L_PMW_Y = 0;
+float L_PMW_Y_vel = 0;
+float L_PMW_Y_acc = 0;
 
 float R_PMW_X = 0;
+float R_PMW_X_vel = 0;
+float R_PMW_X_acc = 0;
 float R_PMW_Y = 0;
+float R_PMW_Y_vel = 0;
+float R_PMW_Y_acc = 0;
 
 float L_yawVel = 0;
 float L_yawAcc = 0;
@@ -53,10 +61,8 @@ float L_pitchVel = 0;
 float L_pitchAcc = 0;
 float prev_L_yaw = 0;
 float prev_L_yawVel = 0;
-float prev_L_yawAcc = 0;
 float prev_L_pitch = 0;
 float prev_L_pitchVel = 0;
-float prev_L_pitchAcc = 0;
 
 float R_yawVel = 0;
 float R_yawAcc = 0;
@@ -64,10 +70,17 @@ float R_pitchVel = 0;
 float R_pitchAcc = 0;
 float prev_R_yaw = 0;
 float prev_R_yawVel = 0;
-float prev_R_yawAcc = 0;
 float prev_R_pitch = 0;
 float prev_R_pitchVel = 0;
-float prev_R_pitchAcc = 0;
+
+float prev_L_PMW_X = 0;
+float prev_L_PMW_Y = 0;
+float prev_L_PMW_X_vel = 0;
+float prev_L_PMW_Y_vel = 0;
+float prev_R_PMW_X = 0;
+float prev_R_PMW_Y = 0;
+float prev_R_PMW_X_vel = 0;
+float prev_R_PMW_Y_vel = 0;
 
 
 void setup() {
@@ -94,19 +107,20 @@ void loop() {
   
     unsigned long timeSinceStart = millis();
     //MPU gets data from updates
-    float L_yaw = mpu6050_1.getAngleY();
+    float L_yaw = mpu6050_2.getAngleY();
     float L_yawVel = 0;
     float L_yawAcc = 0;
-    float L_pitch = mpu6050_1.getAngleX();
+    float L_pitch = mpu6050_2.getAngleX();
     float L_pitchVel = 0;
     float L_pitchAcc = 0;
 
-    float R_yaw = mpu6050_2.getAngleY();
+    float R_yaw = mpu6050_1.getAngleY();
     float R_yawVel = 0;
     float R_yawAcc = 0;
-    float R_pitch = mpu6050_2.getAngleX();
+    float R_pitch = mpu6050_1.getAngleX();
     float R_pitchVel = 0;
     float R_pitchAcc = 0;
+
 
   /* mpu6050_1.update();
     L_pitch = mpu6050_1.getAngleX();
@@ -153,41 +167,100 @@ void loop() {
     R_accX = mpu6050_2.getAccX();
     R_accY = mpu6050_2.getAccY();*/
 
-  //Get data from PMW3389 sensors via readburst
-    PMW3389_DATA data1 = sensor1.readBurst();
-    PMW3389_DATA data2 = sensor2.readBurst(); 
+    //Get data from PMW3389 sensors via readburst
+    PMW3389_DATA data1 = sensor2.readBurst();
+    PMW3389_DATA data2 = sensor1.readBurst(); 
 
-      if (data1.isMotion) {
-        L_PMW_X=((data1.dx)/1290) + L_PMW_X; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
-        L_PMW_Y=((data1.dy)/1290) + L_PMW_Y;  
-      }
-      if (data2.isMotion) {
-        R_PMW_X=((data2.dx)/1290) +R_PMW_X; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
-        R_PMW_Y=((data2.dy)/1290) +R_PMW_Y;  
-      }
+    if (data1.isMotion || data1.isOnSurface) {
+      L_PMW_X=((data1.dx)) + L_PMW_X; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
+
+      
+      L_PMW_Y=((data1.dy)) + L_PMW_Y;  //Can measure 10cm on ruler and use that bit value to convert
+
+    }
+    if (data2.isMotion || data2.isOnSurface) {
+      R_PMW_X=((data2.dx)) + R_PMW_X; // converts to 1mm since 16,000 CPI 16000=32767 in two's compliment so 32767=16,000=inch=25.4mm therefore 1290=1mmm. 
+      R_PMW_Y=((data2.dy)) + R_PMW_Y;
+    }
+
+    
+
+    //Left PMW velocities
+    if (prev_L_PMW_X != 0) {
+      L_PMW_X_vel = (L_PMW_X- prev_L_PMW_X) / (timeSinceStart - prevTimeSinceStart); // units/s
+    }
+    if (prev_L_PMW_Y != 0) {
+      L_PMW_Y_vel = (L_PMW_Y - prev_L_PMW_Y) / (timeSinceStart - prevTimeSinceStart); // units/s
+    }
+
+    //Left PMW accelerations
+    if (prev_L_PMW_X_vel != 0) {
+      L_PMW_X_acc = (L_PMW_X_vel - prev_L_PMW_X_vel) / (timeSinceStart - prevTimeSinceStart); // units/s^2
+    }
+    if (prev_L_PMW_Y_vel != 0) {
+      L_PMW_Y_acc = (L_PMW_Y_vel - prev_L_PMW_Y_vel) / (timeSinceStart - prevTimeSinceStart); // units/s^2
+    }
+
+    //Right PMW velocities
+    if (prev_R_PMW_X != 0) {
+      R_PMW_X_vel = (R_PMW_X- prev_R_PMW_X) / (timeSinceStart - prevTimeSinceStart); // units/s
+    }
+    if (prev_R_PMW_Y != 0) {
+      R_PMW_Y_vel = (R_PMW_Y - prev_R_PMW_Y) / (timeSinceStart - prevTimeSinceStart); // units/s
+    }
+
+    //Right PMW accelerations
+    if (prev_R_PMW_X_vel != 0) {
+      R_PMW_X_acc = (R_PMW_X_vel - prev_R_PMW_X_vel) / (timeSinceStart - prevTimeSinceStart); // units/s^2
+    }
+    if (prev_R_PMW_Y_vel != 0) {
+      R_PMW_Y_acc = (R_PMW_Y_vel - prev_R_PMW_Y_vel) / (timeSinceStart - prevTimeSinceStart); // units/s^2
+    }
+
+    //If not in motion/on surface, reset acceleration value back to zero
+    if(!(data1.isMotion || data1.isOnSurface)) {
+      L_PMW_X_acc = 0;
+      L_PMW_Y_acc = 0;
+    }
+    if(!(data2.isMotion || data2.isOnSurface)) {
+      R_PMW_X_acc = 0;
+      R_PMW_Y_acc = 0;
+    }
+
+
 
       //Force sensor read at Pin A0 
       force = (analogRead(A0)-136) * 0.011; //136 offset to try to "zero" the value
   
       //Serial.println(String(R_pitch) + " " + String(R_pitchAcc) + "   " + String(R_yawAcc));
 
-      Serial.print(String(force) + "|" + String(L_pitchAcc) + "|" + String(L_yawAcc) + "|" + String(R_pitchAcc) + "|" + String(R_yawAcc) + "|" + String(L_PMW_X) + "|"
-        + String(L_PMW_Y) + "|" + String(R_PMW_X) + "|" + String(R_PMW_Y) + '\n');
-    
+      // Division by 1000.00 to convert pitch and yaw to smaller digit value
+      Serial.print(String(force) + "|" + String(L_pitchAcc/1000.00) + "|" + String(L_yawAcc/1000.00) + "|" + String(R_pitchAcc/1000.00) + "|" + String(R_yawAcc/1000.00) + "|" + String(L_PMW_Y_acc) + "|"
+        + String(L_PMW_X_acc) + "|" + String(R_PMW_Y_acc) + "|" + String(R_PMW_X_acc) + '\n');
+      
+
+    //Save previous values
       prevTimeSinceStart = timeSinceStart;
       prev_L_yaw = L_yaw;
       prev_L_yawVel = L_yawVel;
-      prev_L_yawAcc = L_yawAcc;
       prev_L_pitch = L_pitch;
       prev_L_pitchVel = L_pitchVel;
-      prev_L_pitchAcc = L_pitchAcc;
 
       prev_R_yaw = R_yaw;
       prev_R_yawVel = R_yawVel;
-      prev_R_yawAcc = R_yawAcc;
       prev_R_pitch = R_pitch;
       prev_R_pitchVel = R_pitchVel;
-      prev_R_pitchAcc = R_pitchAcc;
+
+      prev_L_PMW_X = L_PMW_X;
+      prev_L_PMW_X_vel = L_PMW_X_vel;
+      prev_L_PMW_Y = L_PMW_Y;
+      prev_L_PMW_Y_vel = L_PMW_Y_vel;
+
+      prev_R_PMW_X = R_PMW_X;
+      prev_R_PMW_X_vel = R_PMW_X_vel;
+      prev_R_PMW_Y = R_PMW_Y;
+      prev_R_PMW_Y_vel = R_PMW_Y_vel;
+
 
       //Serial.flush();
     //delay(100); 

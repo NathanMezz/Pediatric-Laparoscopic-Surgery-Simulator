@@ -112,7 +112,7 @@ def main():
     '''
     def start_sensors():
         try:
-            GUI.ser = serial.Serial('COM5', 9600)
+            GUI.ser = serial.Serial('COM5', 9600)   # COM port may change depending on computer/devices being used
             print("test")
 
         except serial.SerialException:

@@ -15,6 +15,10 @@ Can be used for finding HSV ranges needed for ring task in Main.py.
 Two Camera HSV.py is a modified version of HSV.py that implements the same functionality as HSV.py, but with two cameras to allow
 for 3D object tracking. Attempting to combine two sets of 2D coordinates into one 3D coordinate set.
 
+sensor_data.txt is where all the sensor data from the previous attempt is saved.
+outpy.avi is the video recording of the previous attempt.
+Warning_list.txt is the list of all warnings and their timestamps from the previous attempt.
+
 
 Recommended Software:
 - Anaconda (For python 3.9 install and libraries)
@@ -39,3 +43,7 @@ Setup Instructions:
   and is typically a value of 0, if it is the only camera on the computer, or 1 if there is already another camera connected (such as a built in laptop camera).
 - In Arduino IDE, upload the Complete_Sensor_code.ino code to the arduino, then launch main.py to start the program. The colors for the ring task may need
   manual calibration, which can be done by updating the HSV ranges (i.e red_low, red_high arrays) with the help of HSV.py.
+  
+  
+Video:
+https://www.youtube.com/watch?v=Lf4ZpyTEzIQ

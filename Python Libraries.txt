@@ -2,3 +2,6 @@ Required Python Libraries:
 
 cv2
 - In Anaconda Powershell, install using "pip install opencv-python"
+
+
+All other libraries should be able to be installed to the python interpreter via PyCharm

@@ -24,6 +24,8 @@ Recommended Software:
 - Anaconda (For python 3.9 install and libraries)
 - PyCharm Community (python IDE)
 - Arduino IDE
+
+
 - The MPU6050's interfacing code was based on the Arduino library "MPU6050_tockn": https://github.com/tockn/MPU6050_tockn noteable changes were with respect to the addressing since using a second MPU6050 requires the change in address "0x68" to "0x69" when using the AD0 pin.  
 - The PMW3389's interfacing code was based on the Arduino library "pmw3389_bluemicro": https://github.com/tomKPZ/pmw3389_bluemicro/tree/main/PMW3389 noteable changes was changing the hardcoded CPI from 800 to 16000 to get maximmum precision from the sensor. 
 

@@ -2,7 +2,7 @@ Repository for SYSC4907 Capstone Engineering Project "Pediatric Laparoscopic Sur
 
 Group Members:
 Nathan Mezzomo
-Miles Sutherland
+Miles Sutherland (Kilometers4444)
 Titus Priscu
 
 
@@ -24,6 +24,12 @@ Recommended Software:
 - Anaconda (For python 3.9 install and libraries)
 - PyCharm Community (python IDE)
 - Arduino IDE
+- The MPU6050's interfacing code was based on the Arduino library "MPU6050_tockn": https://github.com/tockn/MPU6050_tockn noteable changes were with respect to the addressing since using a second MPU6050 requires the change in address "0x68" to "0x69" when using the AD0 pin.  
+- The PMW3389's interfacing code was based on the Arduino library "pmw3389_bluemicro": https://github.com/tomKPZ/pmw3389_bluemicro/tree/main/PMW3389 noteable changes was changing the hardcoded CPI from 800 to 16000 to get maximmum precision from the sensor. 
+
+Hardware Setup:
+- When fully extracting or inserting graspers from trocars/sensor housings ENSURE to unscrew the optical sensors from the sensor housing. If not done the lens on the sensor can get jammed into the sensor itself by the tool tip. Lens is snug to the shaft to mimic sitting on a flat surface.    
+- Both MPU6050 and PMW3389 are bolted into the sensor house and panels respectively using M2 screws. An M2 Allen key can be used to unbolt and bolt the sensors snuggly into their respective locations. 
 
 Setup Instructions:
 - Clone repository to desired location.
@@ -37,6 +43,6 @@ Setup Instructions:
 - Plug in the camera and Arduino to your computer. Check which COM port the arduino is on through the Arduino IDE. When setting up on a new computer, this port can be different, so it will need to be updated in the start_sensors() function in main.py. The cameraID value in main.py may also need updating, and is typically a value of 0, if it is the only camera on the computer, or 1 if there is already another camera connected (such as a built in laptop camera).
 - In Arduino IDE, upload the Complete_Sensor_code.ino code to the arduino, then launch main.py to start the program. The colors for the ring task may need manual calibration, which can be done by updating the HSV ranges (i.e red_low, red_high arrays) with the help of HSV.py.
   
-  
+
 Video:
 https://www.youtube.com/watch?v=Lf4ZpyTEzIQ
